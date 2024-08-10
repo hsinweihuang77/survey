@@ -163,10 +163,10 @@ export default {
                 },
             ],
             currentPage: 1,
-            totalPage: 0,
+            // totalPage: 0,
             qShowed: 5, //顯示問卷數量
             testTemp: [],
-            testArr: [],
+            // testArr: [],
             sortCon: [true, false, false],//編號，開始時間，結束時間
             sortIcon: [1, 0, 0],//排序icon 0不顯示 1降序 2升序
             showType: "list", //預設為清單顯示
@@ -180,17 +180,24 @@ export default {
     },
     computed: {
         ...mapState(color, ["maincolor", "blockcolor", "subcolor", "linkcolor", "textcolor"]),
+        testArr(){
+            return this.testTemp.slice((this.currentPage - 1) * this.qShowed, this.currentPage * this.qShowed);
+        },
+        totalPage(){
+            return Math.ceil(this.testTemp.length / this.qShowed);
+        }
+
     },
     methods: {
         changePage(page) {  //換頁
             this.currentPage = page;
-            this.testArr = this.testTemp.slice((this.currentPage - 1) * this.qShowed, this.currentPage * this.qShowed);
+            // this.testArr = this.testTemp.slice((this.currentPage - 1) * this.qShowed, this.currentPage * this.qShowed);
         },
         sortChange(item) {
             switch (item) {
                 case 0:
                     if (this.sortCon[0]) {
-                        this.test.sort((a, b) => a.number - b.number);
+                        this.testTemp.sort((a, b) => a.number - b.number);
                         this.sortCon.fill(false);
                         this.sortIcon.fill(0);
                         this.sortIcon[0] = 2;
@@ -198,7 +205,7 @@ export default {
                         return;
                     }
                     if (!this.sortCon[0]) {
-                        this.test.sort((a, b) => b.number - a.number);
+                        this.testTemp.sort((a, b) => b.number - a.number);
                         this.sortCon.fill(false);
                         this.sortCon[0] = true;
                         this.sortIcon.fill(0);
@@ -208,7 +215,7 @@ export default {
                     }
                 case 1:
                     if (this.sortCon[1]) {
-                        this.test.sort((a, b) => new Date(a.startTime) - new Date(b.startTime))
+                        this.testTemp.sort((a, b) => new Date(a.startTime) - new Date(b.startTime))
                         this.sortCon.fill(false);
                         this.sortIcon.fill(0);
                         this.sortIcon[1] = 2;
@@ -216,7 +223,7 @@ export default {
                         return;
                     }
                     if (!this.sortCon[1]) {
-                        this.test.sort((a, b) => new Date(b.startTime) - new Date(a.startTime))
+                        this.testTemp.sort((a, b) => new Date(b.startTime) - new Date(a.startTime))
                         this.sortCon.fill(false);
                         this.sortCon[1] = true;
                         this.sortIcon.fill(0);
@@ -226,7 +233,7 @@ export default {
                     }
                 case 2:
                     if (this.sortCon[2]) {
-                        this.test.sort((a, b) => new Date(a.endTime) - new Date(b.endTime))
+                        this.testTemp.sort((a, b) => new Date(a.endTime) - new Date(b.endTime))
                         this.sortCon.fill(false);
                         this.sortIcon.fill(0);
                         this.sortIcon[2] = 2;
@@ -234,7 +241,7 @@ export default {
                         return;
                     }
                     if (!this.sortCon[2]) {
-                        this.test.sort((a, b) => new Date(b.endTime) - new Date(a.endTime))
+                        this.testTemp.sort((a, b) => new Date(b.endTime) - new Date(a.endTime))
                         this.sortCon.fill(false);
                         this.sortCon[2] = true;
                         this.sortIcon.fill(0);
@@ -248,22 +255,22 @@ export default {
     watch: {
         qShowed() { //更改顯示數量
             this.currentPage = 1;
-            this.testArr = this.testTemp.slice((this.currentPage - 1) * this.qShowed, this.currentPage * this.qShowed);
-            this.totalPage = Math.ceil(this.testTemp.length / this.qShowed);
+            // this.testArr = this.testTemp.slice((this.currentPage - 1) * this.qShowed, this.currentPage * this.qShowed);
+            // this.totalPage = Math.ceil(this.testTemp.length / this.qShowed);
         },
         checkboxState:{ //控制顯示狀態
             handler(){
                 this.testTemp = this.test.filter(item => this.checkboxState[this.stateMapping[item.state]]);
                 this.changePage(1);
-                this.totalPage = Math.ceil(this.testTemp.length / this.qShowed);
+                // this.totalPage = Math.ceil(this.testTemp.length / this.qShowed);
             },
             deep: true
         }
     },
     mounted() {
         this.testTemp = this.test.slice();
-        this.testArr = this.testTemp.slice((this.currentPage - 1) * this.qShowed, this.currentPage * this.qShowed);
-        this.totalPage = Math.ceil(this.testTemp.length / this.qShowed);
+        // this.testArr = this.testTemp.slice((this.currentPage - 1) * this.qShowed, this.currentPage * this.qShowed);
+        // this.totalPage = Math.ceil(this.testTemp.length / this.qShowed);
     }
 }
 </script>
@@ -390,8 +397,13 @@ export default {
     align-items: center;
     color: v-bind(textcolor);
     padding-right: 15px;
+    
+    span{
+        height: 25px;
+    }
 
     #amountSelect {
+        height: 25px;
         border-radius: 3px;
         margin: 0 15px;
     }

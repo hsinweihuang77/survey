@@ -43,6 +43,16 @@ const router = createRouter({
       props: true,
       component: () => import('../views/SurveyDetailBack.vue')
     },
+    {
+      path: '/CreateSurvey',
+      name: 'CreateSurvey',
+      component: () => import('../views/CreateSurvey.vue')
+    },
+    {
+      path: '/CheckSurvey',
+      name: 'CheckSurvey',
+      component: () => import('../views/CheckSurvey.vue')
+    },
   ]
 })
 

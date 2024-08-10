@@ -5,6 +5,8 @@ import { mapState } from 'pinia'
 export default{
     data(){
         return{
+            startTime:"",
+            endTime:""
         }
     },
     computed: {
@@ -29,9 +31,9 @@ export default{
         </div>
         <div class="searchBoxBot">
             <p>統計時間：</p>
-            <input type="date" class="searchDate">
+            <input type="date" class="searchDate" v-model="this.startTime" :max="this.endTime">
             <span>到</span>
-            <input type="date" class="searchDate">
+            <input type="date" class="searchDate" v-model="this.endTime" :min="this.startTime">
             <button type="button">搜尋</button>
         </div>
         <div class="stateCon">
