@@ -78,13 +78,13 @@ export default {
         justify-content: center;
         transition: 0.3s;
 
-        .title{
+        .title {
             width: 100%;
             text-align: center;
             font-size: 2em;
         }
 
-        .description{
+        .description {
             width: 100%;
             font-size: 1em;
         }

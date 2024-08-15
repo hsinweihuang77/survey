@@ -167,28 +167,27 @@ export default {
             sortCon: [true, false, false],//編號，開始時間，結束時間
             sortIcon: [1, 0, 0],//排序icon 0不顯示 1降序 2升序
             showType: "list", //預設為清單顯示
-            stateMapping : {
+            stateMapping: {
                 "尚未開始": 0,
                 "進行中": 1,
                 "即將結束": 2,
                 "已結束": 3
             },
-            selectedSurvey:[],//勾選問卷
+            selectedSurvey: [],//勾選問卷
             checkAll: false,//全選按鈕
             forceUpdateTrigger: false,//強迫computed重新計算
         }
     },
     computed: {
         ...mapState(color, ["maincolor", "blockcolor", "subcolor", "linkcolor", "textcolor"]),
-        testArr(){
+        testArr() {
             this.forceUpdateTrigger;
-            this.checkAll = false;
             return this.testTemp.slice((this.currentPage - 1) * this.qShowed, this.currentPage * this.qShowed);
         },
-        totalPage(){
+        totalPage() {
             return Math.ceil(this.testTemp.length / this.qShowed);
         },
-        testTemp(){//清單頁面的全部問卷
+        testTemp() {//清單頁面的全部問卷
             return this.test.filter(item => this.checkboxState[this.stateMapping[item.state]]);
         }
 
@@ -206,7 +205,7 @@ export default {
                         this.sortCon.fill(false);
                         this.sortIcon.fill(0);
                         this.sortIcon[0] = 2;
-                        this.forceUpdateTrigger = !this.forceUpdateTrigger
+                        this.forceUpdateTrigger = !this.forceUpdateTrigger; //強迫testArr重新計算
                         return;
                     }
                     if (!this.sortCon[0]) {
@@ -256,18 +255,32 @@ export default {
                     }
             }
         },
-        deleteSurvey(){
+        deleteSurvey() {
+            this.checkAll = false;
             this.test = this.test.filter(item => !this.selectedSurvey.includes(item.number));
         },
+        toggleSelectAll() {
+            if (this.checkAll) {
+                // 全選
+                this.selectedSurvey = this.testArr.map(item => item.number);
+            } else {
+                // 全不選
+                this.selectedSurvey = [];
+            }
+        },
     },
-    watch: {
+        watch: {
         qShowed() { //更改顯示數量
             this.currentPage = 1;
         },
-        totalPage(){
-            if(this.currentPage > this.totalPage){
+        totalPage() {
+            if (this.currentPage > this.totalPage) {
                 this.changePage(this.totalPage);
             }
+        },
+        testArr(){ //顯示有改變就重製全選按鈕
+            this.checkAll = false;
+            this.toggleSelectAll();
         }
     },
 }
@@ -289,16 +302,18 @@ export default {
                 <select name="" id="amountSelect" v-model.number="this.qShowed">
                     <option v-for="index in 10" :value="index" :key="index">{{ index }}</option>
                 </select>
-    
+
                 <!-- 控制顯示方式 -->
                 <label for="radio1" class="radio" :class="{ 'radioSelected': this.showType == 'list' }">
                     <i class="fa-solid fa-list"></i>
                 </label>
-                <input type="radio" id="radio1" name="radio" value="list" v-model="this.showType" style="display: none;">
+                <input type="radio" id="radio1" name="radio" value="list" v-model="this.showType"
+                    style="display: none;">
                 <label for="radio2" class="radio" :class="{ 'radioSelected': this.showType == 'block' }">
                     <i class="fa-solid fa-grip-vertical"></i>
                 </label>
-                <input type="radio" id="radio2" name="radio" value="block" v-model="this.showType" style="display: none;">
+                <input type="radio" id="radio2" name="radio" value="block" v-model="this.showType"
+                    style="display: none;">
             </div>
         </div>
 
@@ -306,7 +321,7 @@ export default {
 
             <!-- 標題 排序 -->
             <tr class="surveyRowTitle">
-                <td><input type="checkbox" v-model="this.checkAll"></td>
+                <td><input type="checkbox" v-model="this.checkAll" @change="toggleSelectAll"></td>
                 <td><a href @click.prevent="this.sortChange(0)">
                         編號
                         <i class="fa-solid fa-sort-up" v-if="this.sortIcon[0] == 2"></i>
@@ -329,7 +344,7 @@ export default {
 
             <!-- 問卷清單 -->
             <tr v-for="item in testArr" :key="item.number" class="surveyRow">
-                <td><input type="checkbox" v-model="selectedSurvey" :value="item.number" :checked="this.checkAll" ></td>
+                <td><input type="checkbox" v-model="selectedSurvey" :value="item.number"></td>
                 <td style="width:10%">{{ item.number }}</td>
                 <td style="width:40%">
                     <RouterLink :to="`/SurveyDetailBack/${item.number}`">
@@ -406,21 +421,21 @@ export default {
     color: v-bind(textcolor);
     padding: 0 15px;
 
-    .qShowedLeft{
+    .qShowedLeft {
         display: flex;
         align-items: center;
-        
-        .fa-trash{
+
+        .fa-trash {
             margin: 0 15px;
         }
 
-        .fa-solid{
+        .fa-solid {
             color: v-bind(linkcolor);
             cursor: pointer;
         }
     }
 
-    .qShowedRight{
+    .qShowedRight {
         display: flex;
 
         #amountSelect {
@@ -428,7 +443,7 @@ export default {
             border-radius: 3px;
             margin: 0 15px;
         }
-    
+
         .radio {
             margin: 0 10px;
             width: 25px;
@@ -437,14 +452,14 @@ export default {
             justify-content: center;
             align-items: center;
         }
-    
+
         .radioSelected {
             background-color: v-bind(textcolor);
             color: v-bind(maincolor);
             border-radius: 3px;
             transition: 0.3s;
         }
-    
+
         .fa-solid {
             font-size: 20px;
             cursor: pointer;
