@@ -268,6 +268,14 @@ export default {
                 this.selectedSurvey = [];
             }
         },
+        surveyLink(number){
+            if(this.$route.path == '/Back'){
+                return `/SurveyDetailBack/${number}`
+            }
+            if(this.$route.path == '/Front'){
+                return `/SurveyDetailFront/${number}`
+            }
+        }
     },
         watch: {
         qShowed() { //更改顯示數量
@@ -290,8 +298,8 @@ export default {
     <div class="mainArea">
         <div class="qShowed">
             <div class="qShowedLeft">
-                <i class="fa-solid fa-trash" @click="deleteSurvey()"></i>
-                <RouterLink to="/CreateSurvey">
+                <i class="fa-solid fa-trash" @click="deleteSurvey()" v-if="this.$route.path == '/Back'"></i>
+                <RouterLink to="/CreateSurvey"  v-if="this.$route.path == '/Back'">
                     <i class="fa-solid fa-plus"></i>
                 </RouterLink>
             </div>
@@ -321,7 +329,7 @@ export default {
 
             <!-- 標題 排序 -->
             <tr class="surveyRowTitle">
-                <td><input type="checkbox" v-model="this.checkAll" @change="toggleSelectAll"></td>
+                <td v-if="this.$route.path == '/Back'"><input type="checkbox" v-model="this.checkAll" @change="toggleSelectAll"></td>
                 <td><a href @click.prevent="this.sortChange(0)">
                         編號
                         <i class="fa-solid fa-sort-up" v-if="this.sortIcon[0] == 2"></i>
@@ -344,10 +352,10 @@ export default {
 
             <!-- 問卷清單 -->
             <tr v-for="item in testArr" :key="item.number" class="surveyRow">
-                <td><input type="checkbox" v-model="selectedSurvey" :value="item.number"></td>
+                <td v-if="this.$route.path == '/Back'"><input type="checkbox" v-model="selectedSurvey" :value="item.number"></td>
                 <td style="width:10%">{{ item.number }}</td>
                 <td style="width:40%">
-                    <RouterLink :to="`/SurveyDetailBack/${item.number}`">
+                    <RouterLink :to="surveyLink(item.number)">
                         {{ item.title }}
                     </RouterLink>
                 </td>
@@ -355,7 +363,7 @@ export default {
                 <td style="width:15%">{{ item.startTime }}</td>
                 <td style="width:15%">{{ item.endTime }}</td>
                 <td style="width:10%">
-                    <RouterLink :to="`/SurveyDetailBack/${item.number}`">
+                    <RouterLink :to="surveyLink(item.number)">
                         {{ item.go }}
                     </RouterLink>
                 </td>
@@ -427,6 +435,7 @@ export default {
 
         .fa-trash {
             margin: 0 15px;
+            padding-top: 3px;
         }
 
         .fa-solid {

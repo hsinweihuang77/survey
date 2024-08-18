@@ -16,9 +16,15 @@ export default {
     },
     methods: {
         ...mapActions(location, ["setPages"]),
+        autoResize() {
+            const textarea = document.querySelector("textarea")
+            textarea.style.height = '28px';
+            textarea.style.height = `${textarea.scrollHeight}px`;
+        },
     },
     mounted() {
         this.setPages("Back");
+        this.autoResize();
     }
 }
 </script>
@@ -30,28 +36,32 @@ export default {
                 {{ survey.title }}
             </div>
             <div class="description">
-                {{ survey.description }}
+                <textarea name="" id="description" @input="autoResize" disabled>{{ survey.description }}</textarea>
+
+            </div>
+            <div class="date">
+                <span class="dateItem">開始時間</span>
+                <span class="dateItem">{{ survey.startDate }}</span>
+                <span class="dateItem">結束時間</span>
+                <span class="dateItem">{{ survey.endDate }}</span>
             </div>
             <div class="questions" v-for="question in survey.questions">
+                <p class="qTitle">{{ question.title }}</p>
                 <div class="question" v-if="question.type == 0">
-                    <span>{{ question.title }}</span>
-                    <input type="text">
+                    <input type="text" class="shortQ" disabled>
                 </div>
                 <div class="question" v-if="question.type == 1">
-                    <p>{{ question.title }}</p>
-                    <textarea name="" id=""></textarea>
+                    <input type="text" class="shortQ" disabled>
                 </div>
                 <div class="question" v-if="question.type == 2">
-                    <p>{{ question.title }}</p>
                     <div class="option" v-for="option in question.option">
-                        <input type="radio" name="" id="">
+                        <input type="radio" name="" id="" disabled>
                         <label for="">{{ option.value }}</label>
                     </div>
                 </div>
                 <div class="question" v-if="question.type == 3">
-                    <p>{{ question.title }}</p>
                     <div class="option" v-for="option in question.option">
-                        <input type="checkbox" name="" id="">
+                        <input type="checkbox" name="" id="" disabled>
                         <label for="">{{ option.value }}</label>
                     </div>
                 </div>
@@ -86,7 +96,52 @@ export default {
 
         .description {
             width: 100%;
-            font-size: 1em;
+
+            #description {
+                width: 100%;
+                font-size: 1em;
+                background-color: transparent;
+                outline: none;
+                border: none;
+                border-bottom: 2px solid v-bind(textcolor);
+                line-height: 1.8;
+                caret-color: v-bind(textcolor);
+                color: v-bind(textcolor);
+                resize: none;
+                overflow: hidden;
+            }
+        }
+
+        .date {
+            display: flex;
+            justify-content: end;
+
+            .dateItem {
+                margin-left: 5px;
+            }
+        }
+
+        .questions {
+            .qTitle{
+                margin-top: 30px;
+                font-size: 1.2em;
+            }
+            .question{
+                .shortQ {
+                    width: 100%;
+                    font-size: 1em;
+                    background-color: transparent;
+                    outline: none;
+                    border: none;
+                    border-bottom: 1px solid v-bind(textcolor);
+                    margin-top: 10px;
+                    caret-color: v-bind(textcolor);
+                    color: v-bind(textcolor);
+                }
+                .option{
+                    margin-top: 5px;
+                }
+            }
         }
     }
 }

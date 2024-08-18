@@ -33,6 +33,12 @@ export default {
         },
         addOption(option) {
             option.push({ value: '' });
+        },
+        deleteQuestion(index){
+            this.survey.questions.splice(index, 1);
+        },
+        deleteOption(index, optionIndex){
+            this.survey.questions[index].option.splice(optionIndex, 1);
         }
     },
     mounted() {
@@ -47,18 +53,24 @@ export default {
 
         <!-- 問卷標題與敘述 -->
         <div class="title">
-            <input type="text" id="title" v-model="survey.title" placeholder="請輸入標題">
+            <input type="text" id="title" v-model="survey.title" placeholder="請輸入標題" autocomplete="off">
             <textarea id="description" @input="autoResize" v-model="survey.description"
-                placeholder="請敘述問卷內容"></textarea>
+                placeholder="請敘述問卷內容" autocomplete="off"></textarea>
+            <div class="date">
+                <span class="dateItem">開始時間</span>
+                <input type="date" class="dateItem" v-model="survey.startDate">
+                <span class="dateItem">結束時間</span>
+                <input type="date" class="dateItem" v-model="survey.endDate">
+            </div>
         </div>
 
         <!-- 問卷內容 -->
-        <div class="questions" v-for="question in survey.questions">
+        <div class="questions" v-for="(question, index) in survey.questions">
 
             <div class="questionTOP">
 
                 <!-- 題目 -->
-                <input type="text" class="qTitle" placeholder="請輸入問題" v-model="question.title">
+                <input type="text" class="qTitle" placeholder="請輸入問題" v-model="question.title" autocomplete="off">
 
                 <!-- 選擇題型 -->
                 <select id="" class="typeSelector" v-model.number="question.type">
@@ -79,9 +91,10 @@ export default {
 
                 <!-- 單選 -->
                 <div class="option" v-if="question.type == 2">
-                    <div class="optionItem" v-for="option in question.option">
+                    <div class="optionItem" v-for="(option,optionIndex) in question.option">
                         <i class="fa-regular fa-circle-dot"></i>
-                        <input type="text" name="" id="" v-model="option.value">
+                        <input type="text" name="" id="" v-model="option.value" autocomplete="off">
+                        <i class="fa-solid fa-xmark" @click="deleteOption(index, optionIndex)"></i>
                     </div>
                     <div class="optionItem">
                         <i class="fa-regular fa-circle-dot"></i>
@@ -91,21 +104,23 @@ export default {
 
                 <!-- 複選 -->
                 <div class="option" v-if="question.type == 3">
-                    <div class="optionItem" v-for="option in question.option">
+                    <div class="optionItem" v-for="(option,optionIndex) in question.option">
                         <i class="fa-regular fa-square-check"></i>
-                        <input type="text" name="" id="" v-model="option.value">
+                        <input type="text" name="" id="" v-model="option.value" autocomplete="off">
+                        <i class="fa-solid fa-xmark" @click="deleteOption(index, optionIndex)"></i>
                     </div>
                     <div class="optionItem">
                         <i class="fa-regular fa-square-check"></i>
                         <span @click="addOption(question.option)">新增選項</span>
                     </div>
                 </div>
+                <i class="fa-solid fa-trash" @click="deleteQuestion(index)"></i>
             </div>
         </div>
         <div class="botArea">
             <div class="addQuestion" @click="addQuestion">新增問題</div>
             <RouterLink to="/CheckSurvey" class="preview">
-                    預覽
+                預覽
             </RouterLink>
         </div>
     </div>
@@ -149,10 +164,26 @@ export default {
         outline: none;
         border: none;
         border-bottom: 2px solid v-bind(textcolor);
+        line-height: 1.8;
         caret-color: v-bind(textcolor);
         color: v-bind(textcolor);
         resize: none;
         overflow: hidden;
+    }
+
+    .date{
+        color: v-bind(textcolor);
+        width: 100%;
+        height: 50px;
+        display: flex;
+        justify-content: end;
+        align-items: end;
+
+        .dateItem{
+            margin-left: 20px;
+            border-radius: 8px;
+            padding: 0 5px;
+        }
     }
 }
 
@@ -165,6 +196,7 @@ export default {
     padding: 3% 5%;
     text-align: center;
     transition: 0.3s;
+    position: relative;
 
     .questionTOP {
         display: flex;
@@ -174,7 +206,7 @@ export default {
 
         .qTitle {
             width: 85%;
-            font-size: 1.5em;
+            font-size: 1.2em;
             background-color: transparent;
             outline: none;
             border: none;
@@ -211,6 +243,7 @@ export default {
                 display: flex;
                 justify-content: start;
                 align-items: center;
+                position: relative;
 
                 .fa-circle-dot {
                     width: 16px;
@@ -222,6 +255,12 @@ export default {
                     margin-right: 15px;
                 }
 
+                .fa-xmark{
+                    position: absolute;
+                    right: 0;
+                    cursor: pointer;
+                }
+
                 input {
                     width: 100%;
                     font-size: 1em;
@@ -231,13 +270,23 @@ export default {
                     border-bottom: 1px solid v-bind(textcolor);
                     caret-color: v-bind(textcolor);
                     color: v-bind(textcolor);
+                    padding-right: 20px;
                 }
 
                 span {
                     cursor: pointer;
                 }
+
+
             }
         }
+    }
+
+    .fa-trash{
+        position: absolute;
+        right: 5%;
+        bottom: 30px;
+        cursor: pointer;
     }
 }
 

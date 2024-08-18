@@ -13,6 +13,8 @@ export default defineStore("survey", {
             survey: {
                 title: "",
                 description: "",
+                startDate: "",
+                endDate: "",
                 questions: []
             }
         }

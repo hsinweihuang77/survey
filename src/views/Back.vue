@@ -4,12 +4,12 @@ import color from '../stores/color'
 import { mapActions } from 'pinia'
 import { mapState } from 'pinia'
 import Search from "../components/Search.vue"
-import SurveyListBack from "../components/SurveyListBack.vue"
+import SurveyList from "../components/SurveyList.vue"
 
 export default {
     components: {
         Search,
-        SurveyListBack,
+        SurveyList,
     },
     data() {
         return {
@@ -30,7 +30,7 @@ export default {
 
 <template>
     <div class="survey">
-        <SurveyListBack :checkboxState="this.checkboxCon"/>
+        <SurveyList :checkboxState="this.checkboxCon"/>
         <div class="search">
             <Search :checkboxState="this.checkboxCon"/>
         </div>
