@@ -68,6 +68,13 @@ export default {
 
             </div>
         </div>
+        <div class="botArea">
+            <RouterLink to="/CreateSurvey" class="back">
+                修改
+            </RouterLink>
+            <div class="save">僅儲存</div>
+            <div class="saveAndRelease">儲存並發布</div>
+        </div>
     </div>
 
 </template>
@@ -143,6 +150,49 @@ export default {
                 }
             }
         }
+    }
+}
+
+.botArea {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+
+    .back{
+        width: 10%;
+        background-color: v-bind(blockcolor);
+        color: v-bind(textcolor);
+        text-decoration: none;
+        border-radius: 20px;
+        margin: 2% 0%;
+        padding: 1%;
+        text-align: center;
+        transition: 0.3s;
+    }
+
+    .save {
+        width: 20%;
+        background-color: v-bind(blockcolor);
+        color: v-bind(textcolor);
+        border-radius: 20px;
+        margin: 2% 0%;
+        margin-left: 45%;
+        padding: 1%;
+        text-align: center;
+        cursor: pointer;
+        transition: 0.3s;
+    }
+
+    .saveAndRelease {
+        width: 20%;
+        background-color: v-bind(blockcolor);
+        color: v-bind(textcolor);
+        border-radius: 20px;
+        margin: 2% 0%;
+        padding: 1%;
+        text-align: center;
+        cursor: pointer;
+        transition: 0.3s;
     }
 }
 </style>

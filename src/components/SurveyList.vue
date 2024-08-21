@@ -3,9 +3,6 @@ import color from '../stores/color'
 import { mapState } from 'pinia'
 
 export default {
-    props: [
-        "checkboxState"
-    ],
     data() {
         return {
             test: [
@@ -176,6 +173,9 @@ export default {
             selectedSurvey: [],//勾選問卷
             checkAll: false,//全選按鈕
             forceUpdateTrigger: false,//強迫computed重新計算
+            startTime:"",//搜尋欄
+            endTime:"",//搜尋欄
+            checkboxState: [true, true, true, true]
         }
     },
     computed: {
@@ -268,16 +268,16 @@ export default {
                 this.selectedSurvey = [];
             }
         },
-        surveyLink(number){
-            if(this.$route.path == '/Back'){
+        surveyLink(number) {
+            if (this.$route.path == '/Back') {
                 return `/SurveyDetailBack/${number}`
             }
-            if(this.$route.path == '/Front'){
+            if (this.$route.path == '/Front') {
                 return `/SurveyDetailFront/${number}`
             }
         }
     },
-        watch: {
+    watch: {
         qShowed() { //更改顯示數量
             this.currentPage = 1;
         },
@@ -286,7 +286,7 @@ export default {
                 this.changePage(this.totalPage);
             }
         },
-        testArr(){ //顯示有改變就重製全選按鈕
+        testArr() { //顯示有改變就重製全選按鈕
             this.checkAll = false;
             this.toggleSelectAll();
         }
@@ -298,8 +298,9 @@ export default {
     <div class="mainArea">
         <div class="qShowed">
             <div class="qShowedLeft">
+                <i class="fa-solid fa-magnifying-glass"></i>
                 <i class="fa-solid fa-trash" @click="deleteSurvey()" v-if="this.$route.path == '/Back'"></i>
-                <RouterLink to="/CreateSurvey"  v-if="this.$route.path == '/Back'">
+                <RouterLink to="/CreateSurvey" v-if="this.$route.path == '/Back'">
                     <i class="fa-solid fa-plus"></i>
                 </RouterLink>
             </div>
@@ -325,11 +326,41 @@ export default {
             </div>
         </div>
 
+        <!-- 搜尋欄 -->
+        <div class="searchBox">
+            <div class="searchBoxTop">
+                <span>問卷名稱：</span>
+                <input type="text" class="searchText">
+            </div>
+            <div class="searchBoxBot">
+                <p>統計時間：</p>
+                <input type="date" class="searchDate" v-model="this.startTime" :max="this.endTime">
+                <span>到</span>
+                <input type="date" class="searchDate" v-model="this.endTime" :min="this.startTime">
+                <button type="button">搜尋</button>
+            </div>
+            <div class="stateCon">
+                <div class="stateCon1">
+                    <input type="checkbox" id="stateCon1" v-model="this.checkboxState[0]">
+                    <label for="stateCon1">尚未開始</label>
+                    <input type="checkbox" id="stateCon2" v-model="this.checkboxState[1]">
+                    <label for="stateCon2">進行中</label>
+                </div>
+                <div class="stateCon1">
+                    <input type="checkbox" id="stateCon3" v-model="this.checkboxState[2]">
+                    <label for="stateCon3">即將結束</label>
+                    <input type="checkbox" id="stateCon4" v-model="this.checkboxState[3]">
+                    <label for="stateCon4">已結束</label>
+                </div>
+            </div>
+        </div>
+
         <table class="surveyList" v-if="this.showType == 'list'">
 
             <!-- 標題 排序 -->
             <tr class="surveyRowTitle">
-                <td v-if="this.$route.path == '/Back'"><input type="checkbox" v-model="this.checkAll" @change="toggleSelectAll"></td>
+                <td v-if="this.$route.path == '/Back'"><input type="checkbox" v-model="this.checkAll"
+                        @change="toggleSelectAll"></td>
                 <td><a href @click.prevent="this.sortChange(0)">
                         編號
                         <i class="fa-solid fa-sort-up" v-if="this.sortIcon[0] == 2"></i>
@@ -352,7 +383,8 @@ export default {
 
             <!-- 問卷清單 -->
             <tr v-for="item in testArr" :key="item.number" class="surveyRow">
-                <td v-if="this.$route.path == '/Back'"><input type="checkbox" v-model="selectedSurvey" :value="item.number"></td>
+                <td v-if="this.$route.path == '/Back'"><input type="checkbox" v-model="selectedSurvey"
+                        :value="item.number"></td>
                 <td style="width:10%">{{ item.number }}</td>
                 <td style="width:40%">
                     <RouterLink :to="surveyLink(item.number)">
@@ -427,14 +459,18 @@ export default {
     justify-content: space-between;
     align-items: center;
     color: v-bind(textcolor);
-    padding: 0 15px;
+    padding-right: 15px;
 
     .qShowedLeft {
         display: flex;
         align-items: center;
 
+        .fa-magnifying-glass{
+            padding-top: 3px;
+        }
+
         .fa-trash {
-            margin: 0 15px;
+            margin: 0 20px;
             padding-top: 3px;
         }
 
@@ -450,11 +486,13 @@ export default {
         #amountSelect {
             height: 25px;
             border-radius: 3px;
-            margin: 0 15px;
+            margin-left: 20px;
+    margin-right: 10px;
+
         }
 
         .radio {
-            margin: 0 10px;
+            margin-left: 15px;
             width: 25px;
             height: 25px;
             display: flex;
@@ -476,6 +514,67 @@ export default {
     }
 
 }
+
+.searchBox{
+    border-radius: 20px;
+    border-top-right-radius: 0;
+    background-color: v-bind(subcolor);
+    color: v-bind(textcolor);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-evenly;
+    align-items: center;
+    overflow: hidden;
+    transition: 0.3s;
+
+    .searchBoxTop{
+        width: 90%;
+        margin: 0 5%;
+
+        .searchText{
+            width: 100%;
+            height: 25px;
+            margin-top: 10px;
+            border-radius: 8px;
+        }
+    }
+    
+    .searchBoxBot{
+        width: 90%;
+        margin: 0 5%;
+
+        .searchDate{
+            border-radius: 8px;
+            margin-top: 10px;
+            margin-right: 10px;
+            padding: 0 5px;
+        }
+    }
+
+    .stateCon{
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: start;
+        align-items: center;
+        margin: 0 5%;
+        .stateCon1{
+            display: flex;
+            align-items: center;
+            width: 100%;
+            margin: 1% 0;
+        }
+        input{
+            width: 15px;
+            height: 15px;
+            margin-right: 1%;
+        }
+        label{
+            margin-right: 15%;
+            
+        }
+    }
+}
+
 
 .surveyList {
     width: 100%;

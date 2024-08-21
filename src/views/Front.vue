@@ -8,12 +8,10 @@ import SurveyList from "../components/SurveyList.vue"
 
 export default {
     components: {
-        Search,
         SurveyList,
     },
     data() {
         return {
-            checkboxCon:[true, true, true, true]
         }
     },
     computed: {
@@ -30,10 +28,7 @@ export default {
 
 <template>
     <div class="survey">
-        <SurveyList :checkboxState="this.checkboxCon"/>
-        <div class="search">
-            <Search :checkboxState="this.checkboxCon"/>
-        </div>
+        <SurveyList/>
     </div>
 </template>
 
@@ -45,11 +40,5 @@ export default {
     flex-direction: column;
     justify-content: center;
     align-items: center;
-
-    .search {
-        position: absolute;
-        top: 75px;
-        left: 0px;
-    }
 }
 </style>

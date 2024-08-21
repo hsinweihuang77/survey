@@ -118,6 +118,9 @@ export default {
             </div>
         </div>
         <div class="botArea">
+            <RouterLink to="/Back" class="back">
+                返回
+            </RouterLink>
             <div class="addQuestion" @click="addQuestion">新增問題</div>
             <RouterLink to="/CheckSurvey" class="preview">
                 預覽
@@ -295,8 +298,20 @@ export default {
     display: flex;
     justify-content: space-between;
 
+    .back{
+        width: 10%;
+        background-color: v-bind(blockcolor);
+        color: v-bind(textcolor);
+        text-decoration: none;
+        border-radius: 20px;
+        margin: 2% 0%;
+        padding: 1%;
+        text-align: center;
+        transition: 0.3s;
+    }
+
     .addQuestion {
-        width: 85%;
+        width: 70%;
         background-color: v-bind(blockcolor);
         color: v-bind(textcolor);
         border-radius: 20px;
