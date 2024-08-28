@@ -3,7 +3,6 @@ import location from "../stores/location"
 import color from '../stores/color'
 import { mapActions } from 'pinia'
 import { mapState } from 'pinia'
-import Search from "../components/Search.vue"
 import SurveyList from "../components/SurveyList.vue"
 
 export default {

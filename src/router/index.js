@@ -15,10 +15,10 @@ const router = createRouter({
       component: () => import('../views/Front.vue')
     },
     {
-      path: '/SurveyDetailFront/:id',
-      name: 'SurveyDetailFront',
+      path: '/FillinSurvey/:id',
+      name: 'FillinSurvey',
       props: true,
-      component: () => import('../views/SurveyDetailFront.vue')
+      component: () => import('../views/FillinSurvey.vue')
     },
     {
       path: '/SurveyCheckFront/:id',
@@ -44,14 +44,21 @@ const router = createRouter({
       component: () => import('../views/SurveyDetailBack.vue')
     },
     {
-      path: '/CreateSurvey',
+      path: '/CreateSurvey/:id',
       name: 'CreateSurvey',
+      props: true,
       component: () => import('../views/CreateSurvey.vue')
     },
     {
       path: '/CheckSurvey',
       name: 'CheckSurvey',
       component: () => import('../views/CheckSurvey.vue')
+    },
+    {
+      path: '/Feedback/:id',
+      name: 'Feedback',
+      props: true,
+      component: () => import('../views/Feedback.vue')
     },
   ]
 })

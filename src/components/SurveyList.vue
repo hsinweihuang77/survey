@@ -1,13 +1,16 @@
 <script>
 import color from '../stores/color'
+import survey from '../stores/survey'
 import { mapState } from 'pinia'
+import { mapActions } from 'pinia'
+import axios from 'axios'
 
 export default {
     data() {
         return {
             test: [
                 {
-                    number: 19,
+                    id: 19,
                     title: "一番好きな季節は？",
                     state: "已結束",
                     startTime: "2024/07/01",
@@ -159,57 +162,78 @@ export default {
                     go: "前往"
                 },
             ],
+            surveyList: [],
             currentPage: 1,
             qShowed: 5, //顯示問卷數量
+            qShowedArr: [5, 10, 20 ,50],
             sortCon: [true, false, false],//編號，開始時間，結束時間
             sortIcon: [1, 0, 0],//排序icon 0不顯示 1降序 2升序
             showType: "list", //預設為清單顯示
             stateMapping: {
-                "尚未開始": 0,
-                "進行中": 1,
-                "即將結束": 2,
+                "未發布": 0,
+                "未開始": 1,
+                "進行中": 2,
                 "已結束": 3
             },
             selectedSurvey: [],//勾選問卷
             checkAll: false,//全選按鈕
             forceUpdateTrigger: false,//強迫computed重新計算
-            startTime:"",//搜尋欄
-            endTime:"",//搜尋欄
+            searchItem: {//搜尋欄
+                quizName: "",
+                startDate: "",
+                endDate: ""
+            },
             checkboxState: [true, true, true, true]
         }
     },
     computed: {
         ...mapState(color, ["maincolor", "blockcolor", "subcolor", "linkcolor", "textcolor"]),
-        testArr() {
+        ...mapState(survey, ["survey"]),
+        surveyListArr() {
             this.forceUpdateTrigger;
-            return this.testTemp.slice((this.currentPage - 1) * this.qShowed, this.currentPage * this.qShowed);
+            return this.surveyListTemp.slice((this.currentPage - 1) * this.qShowed, this.currentPage * this.qShowed);
         },
         totalPage() {
-            return Math.ceil(this.testTemp.length / this.qShowed);
+            return Math.ceil(this.surveyListTemp.length / this.qShowed);
         },
-        testTemp() {//清單頁面的全部問卷
-            return this.test.filter(item => this.checkboxState[this.stateMapping[item.state]]);
+        surveyListTemp() {//清單頁面的全部問卷
+            // return this.surveyList;
+            return this.surveyList.filter(item => this.checkboxState[this.stateMapping[item.state]]);
+        },
+        today() {
+            const date = new Date();
+
+            // 調整時間到 GMT+8 (從 UTC 時間增加 8 小時)
+            const gmt8Date = new Date(date.getTime() + 8 * 60 * 60 * 1000);
+
+            // 取得年、月、日，並格式化為 yyyy-mm-dd
+            const year = gmt8Date.getUTCFullYear();
+            const month = String(gmt8Date.getUTCMonth() + 1).padStart(2, '0'); // 月份從 0 開始計算，需要加 1
+            const day = String(gmt8Date.getUTCDate()).padStart(2, '0');
+
+            return `${year}-${month}-${day}`;
         }
 
     },
     methods: {
-        changePage(page) {  //換頁
+        ...mapActions(survey, ["setFeedbackId"]),
+        changePage(page) { //換頁
             this.currentPage = page;
         },
-        sortChange(item) {
+        sortChange(item) { //排序
             this.checkAll = false;
             switch (item) {
                 case 0:
                     if (this.sortCon[0]) {
-                        this.testTemp.sort((a, b) => a.number - b.number);
+                        this.surveyListTemp.sort((a, b) => a.id - b.id);
                         this.sortCon.fill(false);
                         this.sortIcon.fill(0);
                         this.sortIcon[0] = 2;
-                        this.forceUpdateTrigger = !this.forceUpdateTrigger; //強迫testArr重新計算
+                        this.forceUpdateTrigger = !this.forceUpdateTrigger; //強迫surveyListArr重新計算
                         return;
                     }
                     if (!this.sortCon[0]) {
-                        this.testTemp.sort((a, b) => b.number - a.number);
+                        this.surveyListTemp.sort((a, b) => b.id - a.id);
                         this.sortCon.fill(false);
                         this.sortCon[0] = true;
                         this.sortIcon.fill(0);
@@ -219,7 +243,7 @@ export default {
                     }
                 case 1:
                     if (this.sortCon[1]) {
-                        this.testTemp.sort((a, b) => new Date(a.startTime) - new Date(b.startTime))
+                        this.surveyListTemp.sort((a, b) => new Date(a.startDate) - new Date(b.startDate))
                         this.sortCon.fill(false);
                         this.sortIcon.fill(0);
                         this.sortIcon[1] = 2;
@@ -227,7 +251,7 @@ export default {
                         return;
                     }
                     if (!this.sortCon[1]) {
-                        this.testTemp.sort((a, b) => new Date(b.startTime) - new Date(a.startTime))
+                        this.surveyListTemp.sort((a, b) => new Date(b.startDate) - new Date(a.startDate))
                         this.sortCon.fill(false);
                         this.sortCon[1] = true;
                         this.sortIcon.fill(0);
@@ -237,7 +261,7 @@ export default {
                     }
                 case 2:
                     if (this.sortCon[2]) {
-                        this.testTemp.sort((a, b) => new Date(a.endTime) - new Date(b.endTime))
+                        this.surveyListTemp.sort((a, b) => new Date(a.endDate) - new Date(b.endDate))
                         this.sortCon.fill(false);
                         this.sortIcon.fill(0);
                         this.sortIcon[2] = 2;
@@ -245,7 +269,7 @@ export default {
                         return;
                     }
                     if (!this.sortCon[2]) {
-                        this.testTemp.sort((a, b) => new Date(b.endTime) - new Date(a.endTime))
+                        this.surveyListTemp.sort((a, b) => new Date(b.endDate) - new Date(a.endDate))
                         this.sortCon.fill(false);
                         this.sortCon[2] = true;
                         this.sortIcon.fill(0);
@@ -255,26 +279,96 @@ export default {
                     }
             }
         },
-        deleteSurvey() {
-            this.checkAll = false;
-            this.test = this.test.filter(item => !this.selectedSurvey.includes(item.number));
+        createSurvey(){
+            this.survey.id = 0;
+            this.survey.name = "";
+            this.survey.description = "";
+            this.survey.startDate = this.today;
+            this.survey.endDate = "";
+            this.survey.published = false;
+            this.survey.quesList = [];
+            this.$router.push("/CreateSurvey/0");
         },
-        toggleSelectAll() {
+        async deleteSurvey() { //刪除
+            this.checkAll = false;
+            // this.surveyList = this.surveyList.filter(item => !this.selectedSurvey.includes(item.id));
+            const deleteReq = {quizIdList: this.selectedSurvey}
+            try {
+                // 發送 POST 請求
+                const response = await axios.post('http://localhost:8080/quiz/delete', deleteReq);
+                // 請求成功後的操作
+                console.log('Survey deleted:', response.data);
+                this.search();
+            } catch (error) {
+                // 請求失敗後的操作
+                console.error('There was an error!', error);
+            }
+        },
+        toggleSelectAll() { //全選按鈕
             if (this.checkAll) {
                 // 全選
-                this.selectedSurvey = this.testArr.map(item => item.number);
+                this.selectedSurvey = this.surveyListArr.filter(item => item.state !== '進行中').map(item => item.id);
             } else {
                 // 全不選
                 this.selectedSurvey = [];
             }
         },
         surveyLink(number) {
+
+            this.surveyList.forEach(item => {
+                if (item.id == number) {
+                    this.survey.id = item.id;
+                    this.survey.name = item.name;
+                    this.survey.description = item.description;
+                    this.survey.startDate = item.startDate;
+                    this.survey.endDate = item.endDate;
+                    this.survey.published = item.published;
+                    this.survey.quesList = item.quesList.map(question => {
+                        const newQuestion = { ...question };
+                        newQuestion.option = newQuestion.options.split(";").map(value => ({ value }));
+                        return newQuestion;
+                    });
+                }
+            })
             if (this.$route.path == '/Back') {
-                return `/SurveyDetailBack/${number}`
+                this.$router.push(`/CreateSurvey/${number}`)
             }
             if (this.$route.path == '/Front') {
-                return `/SurveyDetailFront/${number}`
+                this.$router.push(`/FillinSurvey/${number}`)
             }
+        },
+        async search() {
+            try {
+                // 發送 POST 請求
+                const response = await axios.post('http://localhost:8080/quiz/search', this.searchItem);
+                // 請求成功後的操作
+                console.log('Survey created:', response.data);
+                this.surveyList = JSON.parse(JSON.stringify(response.data.quizResList.reverse())); //深拷貝
+                this.surveyList.forEach(item => {
+                    const startTime = item.startDate + "T00:00:00"; //設置為午夜
+                    const endTime = item.endDate + "T23:59:59";
+                    if (!item.published) {
+                        item.state = "未發布";
+                    } else {
+                        if (new Date() < new Date(startTime)) {
+                            item.state = "未開始";
+                        } else if (new Date() > new Date(endTime)) {
+                            item.state = "已結束";
+                        } else {
+                            item.state = "進行中";
+                        }
+                    }
+                })
+
+            } catch (error) {
+                // 請求失敗後的操作
+                console.log(this.searchItem);
+                console.error('There was an error!', error);
+            }
+        },
+        feedback(number){
+            this.setFeedbackId(number);
+            this.$router.push(`/Feedback/${number}`)
         }
     },
     watch: {
@@ -285,12 +379,25 @@ export default {
             if (this.currentPage > this.totalPage) {
                 this.changePage(this.totalPage);
             }
+            if (this.totalPage == 0) {
+                this.currentPage = 0;
+            }
         },
-        testArr() { //顯示有改變就重製全選按鈕
+        surveyListArr() { //顯示有改變就重製全選按鈕
             this.checkAll = false;
             this.toggleSelectAll();
+        },
+        searchItem: {
+            handler(newVal, oldVal) {
+                this.changePage(this.currentPage == 0 ? 1 : this.currentPage); //如果是0就設成1，如果不是就設成當前頁數
+                this.search();
+            },
+            deep: true, // 深度監聽，監聽 search 對象中的所有屬性
         }
     },
+    mounted() {
+        this.search();
+    }
 }
 </script>
 
@@ -300,7 +407,7 @@ export default {
             <div class="qShowedLeft">
                 <i class="fa-solid fa-magnifying-glass"></i>
                 <i class="fa-solid fa-trash" @click="deleteSurvey()" v-if="this.$route.path == '/Back'"></i>
-                <RouterLink to="/CreateSurvey" v-if="this.$route.path == '/Back'">
+                <RouterLink to="/" @click="createSurvey()" v-if="this.$route.path == '/Back'">
                     <i class="fa-solid fa-plus"></i>
                 </RouterLink>
             </div>
@@ -309,7 +416,7 @@ export default {
                 <!-- 選擇顯示數量 -->
                 <span>顯示數量</span>
                 <select name="" id="amountSelect" v-model.number="this.qShowed">
-                    <option v-for="index in 10" :value="index" :key="index">{{ index }}</option>
+                    <option v-for="index in qShowedArr" :value="index" :key="index">{{ index }}</option>
                 </select>
 
                 <!-- 控制顯示方式 -->
@@ -329,29 +436,26 @@ export default {
         <!-- 搜尋欄 -->
         <div class="searchBox">
             <div class="searchBoxTop">
-                <span>問卷名稱：</span>
-                <input type="text" class="searchText">
+                <span>問卷名稱</span>
+                <input type="text" class="searchText" v-model="this.searchItem.quizName">
             </div>
             <div class="searchBoxBot">
-                <p>統計時間：</p>
-                <input type="date" class="searchDate" v-model="this.startTime" :max="this.endTime">
+                <span>統計時間</span>
+                <input type="date" class="searchDate" v-model="this.searchItem.startDate"
+                    :max="this.searchItem.endDate">
                 <span>到</span>
-                <input type="date" class="searchDate" v-model="this.endTime" :min="this.startTime">
-                <button type="button">搜尋</button>
+                <input type="date" class="searchDate" v-model="this.searchItem.endDate"
+                    :min="this.searchItem.startDate">
             </div>
             <div class="stateCon">
-                <div class="stateCon1">
-                    <input type="checkbox" id="stateCon1" v-model="this.checkboxState[0]">
-                    <label for="stateCon1">尚未開始</label>
-                    <input type="checkbox" id="stateCon2" v-model="this.checkboxState[1]">
-                    <label for="stateCon2">進行中</label>
-                </div>
-                <div class="stateCon1">
-                    <input type="checkbox" id="stateCon3" v-model="this.checkboxState[2]">
-                    <label for="stateCon3">即將結束</label>
-                    <input type="checkbox" id="stateCon4" v-model="this.checkboxState[3]">
-                    <label for="stateCon4">已結束</label>
-                </div>
+                <input type="checkbox" id="stateCon1" v-model="this.checkboxState[0]">
+                <label for="stateCon1">未發布</label>
+                <input type="checkbox" id="stateCon2" v-model="this.checkboxState[1]">
+                <label for="stateCon2">未開始</label>
+                <input type="checkbox" id="stateCon3" v-model="this.checkboxState[2]">
+                <label for="stateCon3">進行中</label>
+                <input type="checkbox" id="stateCon4" v-model="this.checkboxState[3]">
+                <label for="stateCon4">已結束</label>
             </div>
         </div>
 
@@ -382,31 +486,40 @@ export default {
             </tr>
 
             <!-- 問卷清單 -->
-            <tr v-for="item in testArr" :key="item.number" class="surveyRow">
-                <td v-if="this.$route.path == '/Back'"><input type="checkbox" v-model="selectedSurvey"
-                        :value="item.number"></td>
-                <td style="width:10%">{{ item.number }}</td>
-                <td style="width:40%">
-                    <RouterLink :to="surveyLink(item.number)">
-                        {{ item.title }}
+            <tr v-for="item in surveyListArr" :key="item.id" class="surveyRow">
+                <td v-if="this.$route.path == '/Back'">
+                    <input type="checkbox" v-model="selectedSurvey" :value="item.id" :disabled="item.state == '進行中'">
+                </td>
+                <td style="width:10%">{{ item.id }}</td>
+                <td style="width:40%" v-if="this.$route.path == '/Back'">
+                    <RouterLink @click="surveyLink(item.id)" to="/" v-if="item.state == '未發布' || item.state == '未開始'">
+                        {{ item.name }}
                     </RouterLink>
+                    <p v-if="item.state == '進行中' || item.state == '已結束'">{{ item.name }}</p>
+                </td>
+                <td style="width:40%" v-if="this.$route.path == '/Front'">
+                    <RouterLink @click="surveyLink(item.id)" to="/" v-if="item.state == '進行中'">
+                        {{ item.name }}
+                    </RouterLink>
+                    <p v-if="!(item.state == '進行中')">{{ item.name }}</p>
                 </td>
                 <td style="width:10%">{{ item.state }}</td>
-                <td style="width:15%">{{ item.startTime }}</td>
-                <td style="width:15%">{{ item.endTime }}</td>
+                <td style="width:15%">{{ item.startDate }}</td>
+                <td style="width:15%">{{ item.endDate }}</td>
                 <td style="width:10%">
-                    <RouterLink :to="surveyLink(item.number)">
-                        {{ item.go }}
+                    <RouterLink @click="feedback(item.id)" to="/" v-if="item.state == '進行中' || item.state == '已結束'">
+                        查看回覆
                     </RouterLink>
+                    <p v-if="item.state == '未發布' || item.state == '未開始'">未開放</p>
                 </td>
             </tr>
         </table>
 
         <div class="surveyBlock" v-if="this.showType == 'block'">
-            <div class="blockItem" v-for="item in testArr" :key="item.number">
+            <div class="blockItem" v-for="item in surveyListArr" :key="item.id">
                 <div class="blockItemTop">
                     <span>{{ item.state }}</span>
-                    <RouterLink :to="`/SurveyChartFront/${item.number}`">
+                    <RouterLink :to="`/SurveyChartFront/${item.id}`">
                         <i class="fa-solid fa-chart-pie"></i>
                     </RouterLink>
                 </div>
@@ -422,18 +535,18 @@ export default {
         </div>
 
         <!-- 頁碼 -->
-        <ul class="pagination">
-            <li class="page-item" :class="{ 'disableditem': this.currentPage == 1 }"
+        <ul class="pagination1">
+            <li class="page-item1" :class="{ 'disableditem': this.currentPage <= 1 }"
                 @click.prevent="this.changePage(this.currentPage - 1)">
-                <a class="page-link" href>&lt;</a>
+                <a class="page-link1" href>&lt;</a>
             </li>
-            <li class="page-item" v-for="page in this.totalPage" :class="{ 'pageSelected': this.currentPage == page }"
+            <li class="page-item1" v-for="page in this.totalPage" :class="{ 'pageSelected': this.currentPage == page }"
                 @click.prevent="this.changePage(page)">
-                <a class="page-link" href>{{ page }}</a>
+                <a class="page-link1" href>{{ page }}</a>
             </li>
-            <li class="page-item" :class="{ 'disableditem': this.currentPage == this.totalPage }"
+            <li class="page-item1" :class="{ 'disableditem': this.currentPage == this.totalPage }"
                 @click.prevent="this.changePage(this.currentPage + 1)">
-                <a class="page-link" href>&gt;</a>
+                <a class="page-link1" href>&gt;</a>
             </li>
         </ul>
     </div>
@@ -465,7 +578,7 @@ export default {
         display: flex;
         align-items: center;
 
-        .fa-magnifying-glass{
+        .fa-magnifying-glass {
             padding-top: 3px;
         }
 
@@ -487,7 +600,7 @@ export default {
             height: 25px;
             border-radius: 3px;
             margin-left: 20px;
-    margin-right: 10px;
+            margin-right: 10px;
 
         }
 
@@ -515,62 +628,53 @@ export default {
 
 }
 
-.searchBox{
-    border-radius: 20px;
-    border-top-right-radius: 0;
-    background-color: v-bind(subcolor);
+.searchBox {
+    width: 100%;
+    // border: 1px solid white;
+    background-color: v-bind(blockcolor);
     color: v-bind(textcolor);
     display: flex;
     flex-direction: column;
     justify-content: space-evenly;
     align-items: center;
-    overflow: hidden;
     transition: 0.3s;
 
-    .searchBoxTop{
-        width: 90%;
-        margin: 0 5%;
+    .searchBoxTop {
+        width: 100%;
 
-        .searchText{
-            width: 100%;
+        .searchText {
             height: 25px;
-            margin-top: 10px;
             border-radius: 8px;
+            padding: 0 5px;
+            outline: none;
         }
     }
-    
-    .searchBoxBot{
-        width: 90%;
-        margin: 0 5%;
 
-        .searchDate{
+    .searchBoxBot {
+        width: 100%;
+
+        .searchDate {
             border-radius: 8px;
-            margin-top: 10px;
             margin-right: 10px;
             padding: 0 5px;
         }
     }
 
-    .stateCon{
+    .stateCon {
+        width: 100%;
         display: flex;
-        flex-wrap: wrap;
         justify-content: start;
         align-items: center;
         margin: 0 5%;
-        .stateCon1{
-            display: flex;
-            align-items: center;
-            width: 100%;
-            margin: 1% 0;
-        }
-        input{
+
+        input {
             width: 15px;
             height: 15px;
             margin-right: 1%;
         }
-        label{
-            margin-right: 15%;
-            
+
+        label {
+            margin-right: 3%;
         }
     }
 }
@@ -597,6 +701,9 @@ export default {
 
         td {
             text-align: center;
+            p{
+                margin: 0;
+            }
         }
     }
 }
@@ -639,13 +746,13 @@ export default {
     }
 }
 
-.pagination {
+.pagination1 {
     display: block;
     overflow: hidden;
     margin: 0 auto;
     margin-top: 2%;
 
-    .page-item {
+    .page-item1 {
         cursor: pointer;
         // font-size: 1rem;
         list-style: none;

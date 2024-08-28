@@ -2,29 +2,32 @@ import { defineStore } from 'pinia';
 
 export default defineStore("survey", {
 
-    state(){ //data
+    state() { //data
         return {
-            formData:{
-                name:"",
-                phone:"",
-                age:"",
-                email:""
-            },
+            formData: {
+                feedbackList: []
+            }
+            ,
             survey: {
-                title: "",
+                id: 0,
+                name: "",
                 description: "",
                 startDate: "",
                 endDate: "",
-                questions: []
-            }
+                published: false,
+                quesList: []
+            },
+            feedbackId: undefined
         }
     },
 
-    getters:{ //computed
+    getters: { //computed
 
     },
 
-    actions:{ //methods
-
+    actions: { //methods
+        setFeedbackId(id){
+            this.feedbackId = id;
+        }
     }
 })

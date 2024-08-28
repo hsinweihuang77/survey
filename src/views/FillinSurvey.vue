@@ -4,16 +4,23 @@ import color from '../stores/color'
 import survey from '../stores/survey'
 import { mapActions } from 'pinia'
 import { mapState } from 'pinia'
-import axios from 'axios'
+import axios from "axios";
 
 export default {
     data() {
         return {
+            isPreview: false,
+            formTemp: {
+                name: "",
+                phone: "",
+                email: "",
+                age: undefined
+            }
         }
     },
     computed: {
         ...mapState(color, ["maincolor", "blockcolor", "subcolor", "linkcolor", "textcolor"]),
-        ...mapState(survey, ["survey"]),
+        ...mapState(survey, ["survey", "formData"]),
     },
     methods: {
         ...mapActions(location, ["setPages"]),
@@ -22,36 +29,74 @@ export default {
             textarea.style.height = '28px';
             textarea.style.height = `${textarea.scrollHeight}px`;
         },
-        async createSurvey() {
-            this.survey.quesList.forEach((question, index) => {
-                question.options = question.option.map(option => option.value).join(";");
-                question.id = index + 1;
-            });
+        preview() {
+            this.isPreview = true;
+            console.log(this.formData.feedbackList);
+
+        },
+        edit() {
+            this.isPreview = false;
+        },
+        async fillin() {
+            this.formData.feedbackList.forEach(item => {
+                item.name = this.formTemp.name;
+                item.phone = this.formTemp.phone;
+                item.email = this.formTemp.email;
+                item.age = this.formTemp.age;
+                if (item.ans.length == 0 && item.ansTemp.length != 0) {
+                    item.ans = item.ansTemp.join(";");
+                }
+                // 1. 獲取當前時間
+                let now = new Date();
+
+                // 2. 將當前時間轉換為 GMT+8 時區
+                let gmt8 = new Date(now.getTime() + 8 * 60 * 60 * 1000);
+
+                // 3. 格式化為 LocalDateTime 格式 (yyyy-MM-ddTHH:mm:ss)
+                let year = gmt8.getUTCFullYear();
+                let month = String(gmt8.getUTCMonth() + 1).padStart(2, '0'); // 月份從0開始，所以要+1
+                let day = String(gmt8.getUTCDate()).padStart(2, '0');
+                let hours = String(gmt8.getUTCHours()).padStart(2, '0');
+                let minutes = String(gmt8.getUTCMinutes()).padStart(2, '0');
+                let seconds = String(gmt8.getUTCSeconds()).padStart(2, '0');
+
+                // 組裝成 LocalDateTime 格式
+                item.fillinDateTime = `${year}-${month}-${day}T${hours}:${minutes}:${seconds}`;
+            })
             try {
                 // 發送 POST 請求
-                if (this.survey.id == 0) {
-                    const response = await axios.post('http://localhost:8080/quiz/create', this.survey);
-                    this.$router.push("/Back");
-                    console.log('Survey created:', response.data);
-                } else {
-                    const response = await axios.post('http://localhost:8080/quiz/update', this.survey);
-                    this.$router.push("/Back");
-                    console.log('Survey created:', response.data);
-                }
+                const response = await axios.post('http://localhost:8080/quiz/fillin', this.formData);
+                // 請求成功後的操作
+                console.log('Survey filled:', response.data);
+                this.$router.push("/Front");
             } catch (error) {
                 // 請求失敗後的操作
-                console.log(this.survey);
                 console.error('There was an error!', error);
             }
         },
-        createSurveyAndPublish(){
-            this.survey.published = true;
-            this.createSurvey();
+    },
+    watch: {
+        'survey.quesList': {
+            handler(newVal) {
+                if (newVal && newVal.length > 0) {
+                    this.formData.feedbackList = newVal.map(item => ({
+                        quizId: this.survey.id,
+                        quId: item.id,
+                        name: "",
+                        phone: "",
+                        email: "",
+                        age: undefined,
+                        ans: "",
+                        ansTemp: [],
+                        fillinDateTime: ""
+                    }));
+                }
+            },
+            immediate: true
         }
     },
     mounted() {
-        console.log(this.survey);
-        this.setPages("Back");
+        this.setPages("Front");
         this.autoResize();
     }
 }
@@ -65,7 +110,6 @@ export default {
             </div>
             <div class="description">
                 <textarea name="" id="description" @input="autoResize" disabled>{{ survey.description }}</textarea>
-
             </div>
             <div class="date">
                 <span class="dateItem">開始時間</span>
@@ -80,13 +124,13 @@ export default {
                             <span style="color: red;">*</span>
                             <span>姓名</span>
                         </div>
-                        <input type="text" class="shortQ" disabled>
+                        <input type="text" class="shortQ" v-model="formTemp.name" :disabled="isPreview" autocomplete="off">
                     </div>
                     <div class="infosItem">
                         <div>
                             <span>手機</span>
                         </div>
-                        <input type="text" class="shortQ" disabled>
+                        <input type="text" class="shortQ" v-model="formTemp.phone" :disabled="isPreview" autocomplete="off">
                     </div>
                 </div>
                 <div class="infosBot">
@@ -95,44 +139,47 @@ export default {
                             <span style="color: red;">*</span>
                             <span>E-mail</span>
                         </div>
-                        <input type="text" class="shortQ" disabled>
+                        <input type="text" class="shortQ" v-model="formTemp.email" :disabled="isPreview" autocomplete="off">
                     </div>
                     <div class="infosItem">
                         <span>年齡</span>
-                        <input type="text" class="shortQ" disabled>
+                        <input type="text" class="shortQ" v-model="formTemp.age" :disabled="isPreview" autocomplete="off">
                     </div>
                 </div>
             </div>
-            <div class="questions" v-for="question in survey.quesList">
+            <div class="questions" v-for="(question, index) in survey.quesList">
                 <span v-if="question.necessary == true" style="color: red;">*</span>
                 <span class="qTitle">{{ question.qu }}</span>
                 <div class="question" v-if="question.type == 'ShortText'">
-                    <input type="text" class="shortQ" disabled>
+                    <input type="text" class="shortQ" :disabled="isPreview" v-model="formData.feedbackList[index].ans" autocomplete="off">
                 </div>
                 <div class="question" v-if="question.type == 'Text'">
-                    <input type="text" class="shortQ" disabled>
+                    <input type="text" class="shortQ" :disabled="isPreview" v-model="formData.feedbackList[index].ans" autocomplete="off">
                 </div>
                 <div class="question" v-if="question.type == 'Single'">
-                    <div class="option" v-for="option in question.option">
-                        <input type="radio" name="" id="" disabled>
-                        <label for="">{{ option.value }}</label>
+                    <div class="option" v-for="(option, opIndex) in question.option" :key="opIndex">
+                        <input type="radio" :name="question.id" :id="'radio' + opIndex" :value="option.value"
+                            :disabled="isPreview" v-model="formData.feedbackList[index].ans">
+                        <label :for="'radio' + opIndex">{{ option.value }}</label>
                     </div>
                 </div>
                 <div class="question" v-if="question.type == 'Multi'">
-                    <div class="option" v-for="option in question.option">
-                        <input type="checkbox" name="" id="" disabled>
-                        <label for="">{{ option.value }}</label>
+                    <div class="option" v-for="(option, opIndex) in question.option" :key="opIndex">
+                        <input type="checkbox" :name="question.id" :id="'checkbox' + opIndex" :value="option.value"
+                            :disabled="isPreview" v-model="formData.feedbackList[index].ansTemp">
+                        <label :for="'checkbox' + opIndex">{{ option.value }}</label>
                     </div>
                 </div>
 
             </div>
         </div>
         <div class="botArea">
-            <RouterLink :to="`/CreateSurvey/${this.survey.id}`" class="back">
-                修改
+            <RouterLink to="/Front" class="back" v-if="!isPreview">
+                返回
             </RouterLink>
-            <div class="save" @click="createSurvey" :class="{'disable': this.survey.published == true}">僅儲存</div>
-            <div class="saveAndRelease" @click="createSurveyAndPublish">儲存並發布</div>
+            <div class="back" @click="edit" v-if="isPreview">修改</div>
+            <div class="preview" @click="preview" v-if="!isPreview">預覽</div>
+            <div class="preview" @click="fillin" v-if="isPreview">送出</div>
         </div>
     </div>
 
@@ -271,27 +318,10 @@ export default {
         padding: 1%;
         text-align: center;
         transition: 0.3s;
-    }
-
-    .save {
-        width: 20%;
-        background-color: v-bind(blockcolor);
-        color: v-bind(textcolor);
-        border-radius: 20px;
-        margin: 2% 0%;
-        margin-left: 45%;
-        padding: 1%;
-        text-align: center;
         cursor: pointer;
-        transition: 0.3s;
     }
 
-    .disable{
-        pointer-events: none;
-        opacity: 0.5;
-    }
-
-    .saveAndRelease {
+    .preview {
         width: 20%;
         background-color: v-bind(blockcolor);
         color: v-bind(textcolor);
