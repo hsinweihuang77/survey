@@ -15,21 +15,18 @@ const router = createRouter({
       component: () => import('../views/Front.vue')
     },
     {
-      path: '/FillinSurvey/:id',
+      path: '/FillinSurvey/',
       name: 'FillinSurvey',
-      props: true,
       component: () => import('../views/FillinSurvey.vue')
     },
     {
-      path: '/SurveyCheckFront/:id',
+      path: '/SurveyCheckFront/',
       name: 'SurveyCheckFront',
-      props: true,
       component: () => import('../views/SurveyCheckFront.vue')
     },
     {
-      path: '/SurveyChartFront/:id',
+      path: '/SurveyChartFront/',
       name: 'SurveyChartFront',
-      props: true,
       component: () => import('../views/SurveyChartFront.vue')
     },
     {
@@ -38,15 +35,13 @@ const router = createRouter({
       component: () => import('../views/Back.vue')
     },
     {
-      path: '/SurveyDetailBack/:id',
+      path: '/SurveyDetailBack/',
       name: 'SurveyDetailBack',
-      props: true,
       component: () => import('../views/SurveyDetailBack.vue')
     },
     {
-      path: '/CreateSurvey/:id',
+      path: '/CreateSurvey/',
       name: 'CreateSurvey',
-      props: true,
       component: () => import('../views/CreateSurvey.vue')
     },
     {
@@ -55,10 +50,24 @@ const router = createRouter({
       component: () => import('../views/CheckSurvey.vue')
     },
     {
-      path: '/Feedback/:id',
+      path: '/Feedback',
       name: 'Feedback',
-      props: true,
       component: () => import('../views/Feedback.vue')
+    },
+    {
+      path: '/FeedbackDetail',
+      name: 'FeedbackDetail',
+      component: () => import('../views/FeedbackDetail.vue')
+    },
+    {
+      path: '/Statistics',
+      name: 'Statistics',
+      component: () => import('../views/Statistics.vue')
+    },
+    {
+      path: '/SurveyChartFront',
+      name: 'SurveyChartFront',
+      component: () => import('../views/SurveyChartFront.vue')
     },
   ]
 })

@@ -4,55 +4,42 @@ import color from '../stores/color'
 import survey from '../stores/survey'
 import { mapActions } from 'pinia'
 import { mapState } from 'pinia'
-import axios from 'axios'
 
 export default {
     data() {
         return {
+            feedbackDetail: []
         }
     },
     computed: {
         ...mapState(color, ["maincolor", "blockcolor", "subcolor", "linkcolor", "textcolor"]),
-        ...mapState(survey, ["survey"]),
+        ...mapState(survey, ["survey", "feedbackPinia", "feedbackDetailId", "feedbackDetailIdMax"]),
     },
     methods: {
         ...mapActions(location, ["setPages"]),
+        ...mapActions(survey, ["setFeedbackDetailId"]),
         autoResize() {
             const textarea = document.querySelector("textarea")
             textarea.style.height = '28px';
             textarea.style.height = `${textarea.scrollHeight}px`;
         },
-        async createSurvey() {
-            this.survey.quesList.forEach((question, index) => {
-                question.options = question.option.map(option => option.value).join(";");
-                question.id = index + 1;
+        findFeedback() {
+            this.feedbackDetail = this.feedbackPinia.feedbacks.filter(item => item.id == this.feedbackDetailId);
+            this.feedbackDetail.forEach(item => {
+                item.ansTemp = item.ans.split(";");
             });
-            try {
-                // 發送 POST 請求
-                if (this.survey.id == 0) {
-                    const response = await axios.post('http://localhost:8080/quiz/create', this.survey);
-                    this.$router.push("/Back");
-                    console.log('Survey created:', response.data);
-                } else {
-                    const response = await axios.post('http://localhost:8080/quiz/update', this.survey);
-                    this.$router.push("/Back");
-                    console.log('Survey created:', response.data);
-                }
-            } catch (error) {
-                // 請求失敗後的操作
-                console.log(this.survey);
-                console.error('There was an error!', error);
-            }
         },
-        createSurveyAndPublish(){
-            this.survey.published = true;
-            this.createSurvey();
+        changeFeedback(number){
+            this.setFeedbackDetailId(this.feedbackDetailId + number);
+            this.findFeedback();
         }
     },
+    watch: {
+    },
     mounted() {
-        console.log(this.survey);
         this.setPages("Back");
         this.autoResize();
+        this.findFeedback();
     }
 }
 </script>
@@ -65,7 +52,6 @@ export default {
             </div>
             <div class="description">
                 <textarea name="" id="description" @input="autoResize" disabled>{{ survey.description }}</textarea>
-
             </div>
             <div class="date">
                 <span class="dateItem">開始時間</span>
@@ -80,13 +66,13 @@ export default {
                             <span style="color: red;">*</span>
                             <span>姓名</span>
                         </div>
-                        <input type="text" class="shortQ" disabled>
+                        <input type="text" class="shortQ" disabled v-if="feedbackDetail.length > 0" v-model="feedbackDetail[0].name">
                     </div>
                     <div class="infosItem">
                         <div>
                             <span>手機</span>
                         </div>
-                        <input type="text" class="shortQ" disabled>
+                        <input type="text" class="shortQ" disabled v-if="feedbackDetail.length > 0" v-model="feedbackDetail[0].phone">
                     </div>
                 </div>
                 <div class="infosBot">
@@ -95,44 +81,49 @@ export default {
                             <span style="color: red;">*</span>
                             <span>E-mail</span>
                         </div>
-                        <input type="text" class="shortQ" disabled>
+                        <input type="text" class="shortQ" disabled v-if="feedbackDetail.length > 0" v-model="feedbackDetail[0].email">
                     </div>
                     <div class="infosItem">
                         <span>年齡</span>
-                        <input type="text" class="shortQ" disabled>
+                        <input type="text" class="shortQ" disabled v-if="feedbackDetail.length > 0" v-model="feedbackDetail[0].age">
                     </div>
                 </div>
             </div>
-            <div class="questions" v-for="question in survey.quesList">
+            <div class="questions" v-for="(question, index) in survey.quesList">
                 <span v-if="question.necessary == true" style="color: red;">*</span>
                 <span class="qTitle">{{ question.qu }}</span>
                 <div class="question" v-if="question.type == 'ShortText'">
-                    <input type="text" class="shortQ" disabled>
+                    <input type="text" class="shortQ" disabled v-if="feedbackDetail.length > 0" v-model="feedbackDetail[index].ans">
                 </div>
                 <div class="question" v-if="question.type == 'Text'">
-                    <input type="text" class="shortQ" disabled>
+                    <input type="text" class="shortQ" disabled v-if="feedbackDetail.length > 0" v-model="feedbackDetail[index].ans">
                 </div>
                 <div class="question" v-if="question.type == 'Single'">
-                    <div class="option" v-for="option in question.option">
-                        <input type="radio" name="" id="" disabled>
-                        <label for="">{{ option.value }}</label>
+                    <div class="option" v-for="(option, opIndex) in question.option" :key="opIndex">
+                        <input type="radio" :name="question.id" :id="'radio' + opIndex" :value="option.value" disabled v-if="feedbackDetail.length > 0" v-model="feedbackDetail[index].ans">
+                        <label :for="'radio' + opIndex">{{ option.value }}</label>
                     </div>
                 </div>
                 <div class="question" v-if="question.type == 'Multi'">
-                    <div class="option" v-for="option in question.option">
-                        <input type="checkbox" name="" id="" disabled>
-                        <label for="">{{ option.value }}</label>
+                    <div class="option" v-for="(option, opIndex) in question.option" :key="opIndex">
+                        <input type="checkbox" :name="question.id" :id="'checkbox' + opIndex" :value="option.value"
+                            disabled v-if="feedbackDetail.length > 0" v-model="feedbackDetail[index].ansTemp">
+                        <label :for="'checkbox' + opIndex">{{ option.value }}</label>
                     </div>
                 </div>
 
             </div>
         </div>
         <div class="botArea">
-            <RouterLink to="/CreateSurvey" class="back">
-                修改
+            <RouterLink to="/Feedback" class="back">
+                返回
             </RouterLink>
-            <div class="save" @click="createSurvey" :class="{'disable': this.survey.published == true}">僅儲存</div>
-            <div class="saveAndRelease" @click="createSurveyAndPublish">儲存並發布</div>
+            <div class="botBTN1" :class="{'disabled': feedbackDetailId == 1}" @click="changeFeedback(-1)">前一張</div>
+            <div class="blank"></div>
+            <div class="botBTN2" :class="{'disabled': feedbackDetailId == feedbackDetailIdMax}" @click="changeFeedback(1)">下一張</div>
+            <RouterLink to="/Statistics" class="stat">
+                統計
+            </RouterLink>
         </div>
     </div>
 
@@ -271,36 +262,53 @@ export default {
         padding: 1%;
         text-align: center;
         transition: 0.3s;
+        cursor: pointer;
     }
 
-    .save {
-        width: 20%;
+    .botBTN1{
+        width: 10%;
         background-color: v-bind(blockcolor);
         color: v-bind(textcolor);
         border-radius: 20px;
         margin: 2% 0%;
-        margin-left: 45%;
         padding: 1%;
         text-align: center;
-        cursor: pointer;
         transition: 0.3s;
+        cursor: pointer;
     }
 
-    .disable{
+    .blank{
+        width: 50%
+    }
+
+    .botBTN2{
+        width: 10%;
+        background-color: v-bind(blockcolor);
+        color: v-bind(textcolor);
+        border-radius: 20px;
+        margin: 2% 0%;
+        padding: 1%;
+        text-align: center;
+        transition: 0.3s;
+        cursor: pointer;
+    }
+
+    .stat{
+        width: 10%;
+        background-color: v-bind(blockcolor);
+        color: v-bind(textcolor);
+        text-decoration: none;
+        border-radius: 20px;
+        margin: 2% 0%;
+        padding: 1%;
+        text-align: center;
+        transition: 0.3s;
+        cursor: pointer;
+    }
+
+    .disabled{
         pointer-events: none;
         opacity: 0.5;
-    }
-
-    .saveAndRelease {
-        width: 20%;
-        background-color: v-bind(blockcolor);
-        color: v-bind(textcolor);
-        border-radius: 20px;
-        margin: 2% 0%;
-        padding: 1%;
-        text-align: center;
-        cursor: pointer;
-        transition: 0.3s;
     }
 }
 </style>

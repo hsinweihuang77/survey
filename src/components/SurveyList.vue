@@ -287,7 +287,7 @@ export default {
             this.survey.endDate = "";
             this.survey.published = false;
             this.survey.quesList = [];
-            this.$router.push("/CreateSurvey/0");
+            this.$router.push("/CreateSurvey");
         },
         async deleteSurvey() { //刪除
             this.checkAll = false;
@@ -327,14 +327,15 @@ export default {
                         const newQuestion = { ...question };
                         newQuestion.option = newQuestion.options.split(";").map(value => ({ value }));
                         return newQuestion;
-                    });
+                    })
+                    .sort((a, b) => a.id - b.id);
                 }
             })
             if (this.$route.path == '/Back') {
-                this.$router.push(`/CreateSurvey/${number}`)
+                this.$router.push(`/CreateSurvey`)
             }
             if (this.$route.path == '/Front') {
-                this.$router.push(`/FillinSurvey/${number}`)
+                this.$router.push(`/FillinSurvey`)
             }
         },
         async search() {
@@ -368,7 +369,22 @@ export default {
         },
         feedback(number){
             this.setFeedbackId(number);
-            this.$router.push(`/Feedback/${number}`)
+            this.surveyList.forEach(item => {
+                if (item.id == number) {
+                    this.survey.id = item.id;
+                    this.survey.name = item.name;
+                    this.survey.description = item.description;
+                    this.survey.startDate = item.startDate;
+                    this.survey.endDate = item.endDate;
+                    this.survey.published = item.published;
+                    this.survey.quesList = item.quesList.map(question => {
+                        const newQuestion = { ...question };
+                        newQuestion.option = newQuestion.options.split(";").map(value => ({ value }));
+                        return newQuestion;
+                    });
+                }
+            })
+            this.$router.push(`/Feedback`)
         }
     },
     watch: {
@@ -436,14 +452,12 @@ export default {
         <!-- 搜尋欄 -->
         <div class="searchBox">
             <div class="searchBoxTop">
-                <span>問卷名稱</span>
+                <span class="searchSpan">問卷名稱</span>
                 <input type="text" class="searchText" v-model="this.searchItem.quizName">
-            </div>
-            <div class="searchBoxBot">
-                <span>統計時間</span>
+                <span class="searchSpan">統計時間</span>
                 <input type="date" class="searchDate" v-model="this.searchItem.startDate"
                     :max="this.searchItem.endDate">
-                <span>到</span>
+                <span class="searchSpan">到</span>
                 <input type="date" class="searchDate" v-model="this.searchItem.endDate"
                     :min="this.searchItem.startDate">
             </div>
@@ -519,7 +533,7 @@ export default {
             <div class="blockItem" v-for="item in surveyListArr" :key="item.id">
                 <div class="blockItemTop">
                     <span>{{ item.state }}</span>
-                    <RouterLink :to="`/SurveyChartFront/${item.id}`">
+                    <RouterLink :to="`/SurveyChartFront/`">
                         <i class="fa-solid fa-chart-pie"></i>
                     </RouterLink>
                 </div>
@@ -642,16 +656,16 @@ export default {
     .searchBoxTop {
         width: 100%;
 
+        .searchSpan{
+            margin-right: 10px;
+        }
         .searchText {
             height: 25px;
             border-radius: 8px;
             padding: 0 5px;
+            margin-right: 10px;
             outline: none;
         }
-    }
-
-    .searchBoxBot {
-        width: 100%;
 
         .searchDate {
             border-radius: 8px;

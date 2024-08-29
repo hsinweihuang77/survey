@@ -45,6 +45,6 @@ export default {
   left: 0;
   z-index: -1;
   background-color: v-bind(maincolor);
-  transition: 0.3s;
+  /* transition: 0.3s; */
 }
 </style>

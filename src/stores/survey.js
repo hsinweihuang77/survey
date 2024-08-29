@@ -17,7 +17,12 @@ export default defineStore("survey", {
                 published: false,
                 quesList: []
             },
-            feedbackId: undefined
+            feedbackId: undefined,
+            feedbackPinia: {
+                feedbacks:[]
+            },
+            feedbackDetailId: undefined,
+            feedbackDetailIdMax: undefined
         }
     },
 
@@ -28,6 +33,12 @@ export default defineStore("survey", {
     actions: { //methods
         setFeedbackId(id){
             this.feedbackId = id;
+        },
+        setFeedbackDetailId(id){
+            this.feedbackDetailId = id;
+        },
+        setFeedbackDetailIdMax(id){
+            this.feedbackDetailIdMax = id;
         }
     }
 })
