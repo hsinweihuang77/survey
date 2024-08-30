@@ -165,7 +165,7 @@ export default {
             surveyList: [],
             currentPage: 1,
             qShowed: 5, //顯示問卷數量
-            qShowedArr: [5, 10, 20 ,50],
+            qShowedArr: [5, 10, 20, 50],
             sortCon: [true, false, false],//編號，開始時間，結束時間
             sortIcon: [1, 0, 0],//排序icon 0不顯示 1降序 2升序
             showType: "list", //預設為清單顯示
@@ -183,7 +183,8 @@ export default {
                 startDate: "",
                 endDate: ""
             },
-            checkboxState: [true, true, true, true]
+            checkboxState: [true, true, true, true],
+            searchOn: false
         }
     },
     computed: {
@@ -198,7 +199,12 @@ export default {
         },
         surveyListTemp() {//清單頁面的全部問卷
             // return this.surveyList;
-            return this.surveyList.filter(item => this.checkboxState[this.stateMapping[item.state]]);
+            if (this.$route.path == '/Back') {
+                return this.surveyList.filter(item => this.checkboxState[this.stateMapping[item.state]]);
+            }
+            if (this.$route.path == '/Front') {
+                return this.surveyList.filter(item => this.checkboxState[this.stateMapping[item.state]]).filter(item => item.state !== '未發布');
+            }
         },
         today() {
             const date = new Date();
@@ -279,7 +285,7 @@ export default {
                     }
             }
         },
-        createSurvey(){
+        createSurvey() {
             this.survey.id = 0;
             this.survey.name = "";
             this.survey.description = "";
@@ -292,7 +298,7 @@ export default {
         async deleteSurvey() { //刪除
             this.checkAll = false;
             // this.surveyList = this.surveyList.filter(item => !this.selectedSurvey.includes(item.id));
-            const deleteReq = {quizIdList: this.selectedSurvey}
+            const deleteReq = { quizIdList: this.selectedSurvey }
             try {
                 // 發送 POST 請求
                 const response = await axios.post('http://localhost:8080/quiz/delete', deleteReq);
@@ -328,7 +334,7 @@ export default {
                         newQuestion.option = newQuestion.options.split(";").map(value => ({ value }));
                         return newQuestion;
                     })
-                    .sort((a, b) => a.id - b.id);
+                        .sort((a, b) => a.id - b.id);
                 }
             })
             if (this.$route.path == '/Back') {
@@ -367,7 +373,7 @@ export default {
                 console.error('There was an error!', error);
             }
         },
-        feedback(number){
+        feedback(number) {
             this.setFeedbackId(number);
             this.surveyList.forEach(item => {
                 if (item.id == number) {
@@ -385,6 +391,9 @@ export default {
                 }
             })
             this.$router.push(`/Feedback`)
+        },
+        searchOnOff() {
+            this.searchOn = !this.searchOn;
         }
     },
     watch: {
@@ -421,7 +430,7 @@ export default {
     <div class="mainArea">
         <div class="qShowed">
             <div class="qShowedLeft">
-                <i class="fa-solid fa-magnifying-glass"></i>
+                <i class="fa-solid fa-magnifying-glass" @click="searchOnOff"></i>
                 <i class="fa-solid fa-trash" @click="deleteSurvey()" v-if="this.$route.path == '/Back'"></i>
                 <RouterLink to="/" @click="createSurvey()" v-if="this.$route.path == '/Back'">
                     <i class="fa-solid fa-plus"></i>
@@ -432,11 +441,11 @@ export default {
                 <!-- 選擇顯示數量 -->
                 <span>顯示數量</span>
                 <select name="" id="amountSelect" v-model.number="this.qShowed">
-                    <option v-for="index in qShowedArr" :value="index" :key="index">{{ index }}</option>
+                    <option v-for="index in 10" :value="index" :key="index">{{ index }}</option>
                 </select>
 
                 <!-- 控制顯示方式 -->
-                <label for="radio1" class="radio" :class="{ 'radioSelected': this.showType == 'list' }">
+                <!-- <label for="radio1" class="radio" :class="{ 'radioSelected': this.showType == 'list' }">
                     <i class="fa-solid fa-list"></i>
                 </label>
                 <input type="radio" id="radio1" name="radio" value="list" v-model="this.showType"
@@ -445,12 +454,12 @@ export default {
                     <i class="fa-solid fa-grip-vertical"></i>
                 </label>
                 <input type="radio" id="radio2" name="radio" value="block" v-model="this.showType"
-                    style="display: none;">
+                    style="display: none;"> -->
             </div>
         </div>
 
         <!-- 搜尋欄 -->
-        <div class="searchBox">
+        <div class="searchBox" :class="{ 'searchOn': searchOn == true }">
             <div class="searchBoxTop">
                 <span class="searchSpan">問卷名稱</span>
                 <input type="text" class="searchText" v-model="this.searchItem.quizName">
@@ -462,8 +471,9 @@ export default {
                     :min="this.searchItem.startDate">
             </div>
             <div class="stateCon">
-                <input type="checkbox" id="stateCon1" v-model="this.checkboxState[0]">
-                <label for="stateCon1">未發布</label>
+                <input type="checkbox" id="stateCon1" v-model="this.checkboxState[0]"
+                    v-if="this.$route.path == '/Back'">
+                <label for="stateCon1" v-if="this.$route.path == '/Back'">未發布</label>
                 <input type="checkbox" id="stateCon2" v-model="this.checkboxState[1]">
                 <label for="stateCon2">未開始</label>
                 <input type="checkbox" id="stateCon3" v-model="this.checkboxState[2]">
@@ -502,7 +512,8 @@ export default {
             <!-- 問卷清單 -->
             <tr v-for="item in surveyListArr" :key="item.id" class="surveyRow">
                 <td v-if="this.$route.path == '/Back'">
-                    <input type="checkbox" v-model="selectedSurvey" :value="item.id" :disabled="item.state == '進行中'">
+                    <input type="checkbox" v-model="selectedSurvey" :value="item.id"
+                        :style="{ 'display': item.state === '進行中' ? 'none' : 'initial' }">
                 </td>
                 <td style="width:10%">{{ item.id }}</td>
                 <td style="width:40%" v-if="this.$route.path == '/Back'">
@@ -631,7 +642,6 @@ export default {
             background-color: v-bind(textcolor);
             color: v-bind(maincolor);
             border-radius: 3px;
-            transition: 0.3s;
         }
 
         .fa-solid {
@@ -644,6 +654,8 @@ export default {
 
 .searchBox {
     width: 100%;
+    height: 0;
+    overflow: hidden;
     // border: 1px solid white;
     background-color: v-bind(blockcolor);
     color: v-bind(textcolor);
@@ -656,9 +668,10 @@ export default {
     .searchBoxTop {
         width: 100%;
 
-        .searchSpan{
+        .searchSpan {
             margin-right: 10px;
         }
+
         .searchText {
             height: 25px;
             border-radius: 8px;
@@ -668,6 +681,7 @@ export default {
         }
 
         .searchDate {
+            width: 140px;
             border-radius: 8px;
             margin-right: 10px;
             padding: 0 5px;
@@ -693,6 +707,9 @@ export default {
     }
 }
 
+.searchOn {
+    height: 100px;
+}
 
 .surveyList {
     width: 100%;
@@ -715,7 +732,8 @@ export default {
 
         td {
             text-align: center;
-            p{
+
+            p {
                 margin: 0;
             }
         }

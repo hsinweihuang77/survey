@@ -19,9 +19,11 @@ export default {
         ...mapActions(location, ["setPages"]),
         ...mapActions(survey, ["setFeedbackDetailId"]),
         autoResize() {
-            const textarea = document.querySelector("textarea")
-            textarea.style.height = '28px';
-            textarea.style.height = `${textarea.scrollHeight}px`;
+            const textarea = document.querySelectorAll("textarea")
+            textarea.forEach(item => {
+                item.style.height = '28px';
+                item.style.height = `${item.scrollHeight}px`;
+            })
         },
         findFeedback() {
             this.feedbackDetail = this.feedbackPinia.feedbacks.filter(item => item.id == this.feedbackDetailId);
@@ -34,12 +36,13 @@ export default {
             this.findFeedback();
         }
     },
-    watch: {
+    created(){
+        this.findFeedback();
     },
     mounted() {
         this.setPages("Back");
+        // this.findFeedback();
         this.autoResize();
-        this.findFeedback();
     }
 }
 </script>
@@ -96,19 +99,20 @@ export default {
                     <input type="text" class="shortQ" disabled v-if="feedbackDetail.length > 0" v-model="feedbackDetail[index].ans">
                 </div>
                 <div class="question" v-if="question.type == 'Text'">
-                    <input type="text" class="shortQ" disabled v-if="feedbackDetail.length > 0" v-model="feedbackDetail[index].ans">
+                    <textarea @input="autoResize" type="text" class="textQ" disabled v-if="feedbackDetail.length > 0" 
+                        v-model="feedbackDetail[index].ans" autocomplete="off"></textarea>
                 </div>
                 <div class="question" v-if="question.type == 'Single'">
                     <div class="option" v-for="(option, opIndex) in question.option" :key="opIndex">
-                        <input type="radio" :name="question.id" :id="'radio' + opIndex" :value="option.value" disabled v-if="feedbackDetail.length > 0" v-model="feedbackDetail[index].ans">
-                        <label :for="'radio' + opIndex">{{ option.value }}</label>
+                        <input type="radio" :name="question.id" :id="'radio' + question.qu + opIndex" :value="option.value" disabled v-if="feedbackDetail.length > 0" v-model="feedbackDetail[index].ans">
+                        <label :for="'radio' + question.qu + opIndex" v-if="feedbackDetail.length > 0" :class="{'selected': feedbackDetail[index].ans == option.value}">{{ option.value }}</label>
                     </div>
                 </div>
                 <div class="question" v-if="question.type == 'Multi'">
                     <div class="option" v-for="(option, opIndex) in question.option" :key="opIndex">
-                        <input type="checkbox" :name="question.id" :id="'checkbox' + opIndex" :value="option.value"
+                        <input type="checkbox" :name="question.id" :id="'checkbox' + question.qu + opIndex" :value="option.value"
                             disabled v-if="feedbackDetail.length > 0" v-model="feedbackDetail[index].ansTemp">
-                        <label :for="'checkbox' + opIndex">{{ option.value }}</label>
+                        <label :for="'checkbox' + question.qu + opIndex" v-if="feedbackDetail.length > 0" :class="{'selected': feedbackDetail[index].ansTemp.includes(option.value) }">{{ option.value }}</label>
                     </div>
                 </div>
 
@@ -239,8 +243,27 @@ export default {
                     color: v-bind(textcolor);
                 }
 
+                .textQ {
+                        width: 100%;
+                        font-size: 1em;
+                        background-color: transparent;
+                        outline: none;
+                        border: none;
+                        border-bottom: 2px solid v-bind(textcolor);
+                        line-height: 1.8;
+                        caret-color: v-bind(textcolor);
+                        color: v-bind(textcolor);
+                        resize: none;
+                        overflow: hidden;
+                        
+                    }
+
                 .option {
                     margin-top: 5px;
+
+                    .selected{
+                        color: aqua;
+                    }
                 }
             }
         }

@@ -13,6 +13,7 @@ export default {
         }
     },
     computed: {
+        ...mapState(location, ["location"]),
         ...mapState(color, ["maincolor", "blockcolor", "subcolor", "linkcolor", "textcolor"]),
         ...mapState(survey, ["survey", "formData", "feedbackId", "feedbackPinia"]),
     },
@@ -25,6 +26,12 @@ export default {
                 const response = await axios.post(`http://localhost:8080/quiz/feedback?quizId=${this.feedbackId}`);
                 // 請求成功後的操作
                 console.log('Feedback:', response.data);
+
+                if(response.data.feedbackList.length == 0){
+                    this.feedbackList[0] = {
+                        fillinDateTime: "尚無回覆"
+                    };
+                }else{
                 // 使用 Map 來合併具有相同 email 的資料
                 const map = new Map();
 
@@ -59,7 +66,7 @@ export default {
 
                 console.log(this.feedbackList);
                 console.log(this.feedbackPinia.feedbacks);
-                
+            }
 
             } catch (error) {
                 // 請求失敗後的操作
@@ -78,7 +85,6 @@ export default {
         }
     },
     mounted() {
-        this.setPages("Back");
         this.feedback();
         this.autoResize();
     }
@@ -100,7 +106,7 @@ export default {
                 <span class="dateItem">結束時間</span>
                 <span class="dateItem">{{ survey.endDate }}</span>
             </div>
-            <table class="surveyList">
+            <table class="surveyList" v-if="location == 'Back'">
                 <tr class="surveyRowTitle">
                     <td style="width: 30%;">姓名</td>
                     <td style="width: 30%;">回覆時間</td>
@@ -110,7 +116,7 @@ export default {
                 <tr v-for="item in feedbackList" :key="item.fillinDateTime" class="surveyRow">
                     <td style="width: 30%;">{{ item.name }}</td>
                     <td style="width: 30%;">{{ item.fillinDateTime }}</td>
-                    <td style="width: 30%;">
+                    <td style="width: 30%;" v-if="item.fillinDateTime != '尚無回覆'">
                         <RouterLink to="/" @click="feedbackDetail(item.id)">
                             前往
                         </RouterLink>

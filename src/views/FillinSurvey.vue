@@ -74,6 +74,13 @@ export default {
                 console.error('There was an error!', error);
             }
         },
+        autoResize() {
+            const textarea = document.querySelectorAll("textarea")
+            textarea.forEach(item => {
+                item.style.height = '28px';
+                item.style.height = `${item.scrollHeight}px`;
+            })
+        },
     },
     watch: {
         'survey.quesList': {
@@ -124,13 +131,15 @@ export default {
                             <span style="color: red;">*</span>
                             <span>姓名</span>
                         </div>
-                        <input type="text" class="shortQ" v-model="formTemp.name" :disabled="isPreview" autocomplete="off">
+                        <input type="text" class="shortQ" v-model="formTemp.name" :disabled="isPreview"
+                            autocomplete="off">
                     </div>
                     <div class="infosItem">
                         <div>
                             <span>手機</span>
                         </div>
-                        <input type="text" class="shortQ" v-model="formTemp.phone" :disabled="isPreview" autocomplete="off">
+                        <input type="text" class="shortQ" v-model="formTemp.phone" :disabled="isPreview"
+                            autocomplete="off">
                     </div>
                 </div>
                 <div class="infosBot">
@@ -139,11 +148,13 @@ export default {
                             <span style="color: red;">*</span>
                             <span>E-mail</span>
                         </div>
-                        <input type="text" class="shortQ" v-model="formTemp.email" :disabled="isPreview" autocomplete="off">
+                        <input type="text" class="shortQ" v-model="formTemp.email" :disabled="isPreview"
+                            autocomplete="off">
                     </div>
                     <div class="infosItem">
                         <span>年齡</span>
-                        <input type="text" class="shortQ" v-model="formTemp.age" :disabled="isPreview" autocomplete="off">
+                        <input type="text" class="shortQ" v-model="formTemp.age" :disabled="isPreview"
+                            autocomplete="off">
                     </div>
                 </div>
             </div>
@@ -151,23 +162,29 @@ export default {
                 <span v-if="question.necessary == true" style="color: red;">*</span>
                 <span class="qTitle">{{ question.qu }}</span>
                 <div class="question" v-if="question.type == 'ShortText'">
-                    <input type="text" class="shortQ" :disabled="isPreview" v-model="formData.feedbackList[index].ans" autocomplete="off">
+                    <input type="text" class="shortQ" :disabled="isPreview" v-model="formData.feedbackList[index].ans"
+                        autocomplete="off">
                 </div>
                 <div class="question" v-if="question.type == 'Text'">
-                    <input type="text" class="shortQ" :disabled="isPreview" v-model="formData.feedbackList[index].ans" autocomplete="off">
+                    <textarea @input="autoResize" type="text" class="textQ" :disabled="isPreview"
+                        v-model="formData.feedbackList[index].ans" autocomplete="off"></textarea>
                 </div>
                 <div class="question" v-if="question.type == 'Single'">
                     <div class="option" v-for="(option, opIndex) in question.option" :key="opIndex">
-                        <input type="radio" :name="question.id" :id="'radio' + opIndex" :value="option.value"
-                            :disabled="isPreview" v-model="formData.feedbackList[index].ans">
-                        <label :for="'radio' + opIndex">{{ option.value }}</label>
+                        <input type="radio" :name="question.id" :id="'radio' + question.qu + opIndex"
+                            :value="option.value" :disabled="isPreview" v-model="formData.feedbackList[index].ans">
+                        <label :for="'radio' + question.qu + opIndex"
+                            :class="{ 'selected': formData.feedbackList[index].ans == option.value }">{{ option.value
+                            }}</label>
                     </div>
                 </div>
                 <div class="question" v-if="question.type == 'Multi'">
                     <div class="option" v-for="(option, opIndex) in question.option" :key="opIndex">
-                        <input type="checkbox" :name="question.id" :id="'checkbox' + opIndex" :value="option.value"
-                            :disabled="isPreview" v-model="formData.feedbackList[index].ansTemp">
-                        <label :for="'checkbox' + opIndex">{{ option.value }}</label>
+                        <input type="checkbox" :name="question.id" :id="'checkbox' + question.qu + opIndex"
+                            :value="option.value" :disabled="isPreview" v-model="formData.feedbackList[index].ansTemp">
+                        <label :for="'checkbox' + question.qu + opIndex"
+                            :class="{ 'selected': formData.feedbackList[index].ansTemp.includes(option.value) }">{{
+                            option.value }}</label>
                     </div>
                 </div>
 
@@ -268,6 +285,8 @@ export default {
                         // caret-color: v-bind(textcolor);
                         color: v-bind(textcolor);
                     }
+
+                    
                 }
 
             }
@@ -294,9 +313,27 @@ export default {
                     caret-color: v-bind(textcolor);
                     color: v-bind(textcolor);
                 }
+                .textQ {
+                        width: 100%;
+                        font-size: 1em;
+                        background-color: transparent;
+                        outline: none;
+                        border: none;
+                        border-bottom: 2px solid v-bind(textcolor);
+                        line-height: 1.8;
+                        caret-color: v-bind(textcolor);
+                        color: v-bind(textcolor);
+                        resize: none;
+                        overflow: hidden;
+                        
+                    }
 
                 .option {
                     margin-top: 5px;
+
+                    .selected {
+                        color: aqua;
+                    }
                 }
             }
         }
@@ -322,7 +359,7 @@ export default {
     }
 
     .preview {
-        width: 20%;
+        width: 10%;
         background-color: v-bind(blockcolor);
         color: v-bind(textcolor);
         border-radius: 20px;

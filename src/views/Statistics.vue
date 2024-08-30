@@ -16,6 +16,7 @@ export default {
         }
     },
     computed: {
+        ...mapState(location, ["location"]),
         ...mapState(color, ["maincolor", "blockcolor", "subcolor", "linkcolor", "textcolor"]),
         ...mapState(survey, ["survey", "feedbackId", "feedbackPinia"]),
     },
@@ -82,6 +83,8 @@ export default {
                         this.chartIndex++;
                     }
                     if (quItem.type == "Multi") {
+                        console.log(this.charts[this.chartIndex].map(item => item.name));
+
                         const chartDom = this.$refs[`chart${quIndex}`][0]; // 取得對應的 DOM 節點
                         const myChart = echarts.init(chartDom); // 初始化 ECharts
                         const option = {
@@ -101,44 +104,58 @@ export default {
                                 type: 'category', // X 軸為類別類型
                                 data: this.charts[this.chartIndex].map(item => item.name), // 設定 X 軸數據為選項名稱
                                 axisLabel: {
-                                    color: this.textcolor
-                                }
-                            },
-                            yAxis: {
-                                type: 'value', // Y 軸為數值類型
-                                axisLabel: {
-                                    color: this.textcolor
-                                }
-                            },
-                            series: [
-                                {
-                                    name: quItem.qu,
-                                    type: 'bar', // 設置為長條圖
-                                    data: this.charts[this.chartIndex].map(item => item.value), // 設定數據為每個選項的數量
-                                    emphasis: {
-                                        itemStyle: {
-                                            shadowBlur: 10,
-                                            shadowOffsetX: 0,
-                                            shadowColor: 'rgba(0, 0, 0, 0.5)'
+                                    color: this.textcolor,
+                                    fontsize: 10,
+                                    interval: 0, // 設為 0 顯示所有標籤
+                                    rotate: 45,  // 將標籤旋轉 45 度
+                                    formatter: function (value) {
+                                        return value.length > 10 ? value.slice(0, 10) + '...' : value;
+                                    }}
+                                },
+                                yAxis: {
+                                    type: 'value', // Y 軸為數值類型
+                                    axisLabel: {
+                                        color: this.textcolor
+                                    }
+                                },
+                                series: [
+                                    {
+                                        name: quItem.qu,
+                                        type: 'bar', // 設置為長條圖
+                                        data: this.charts[this.chartIndex].map(item => item.value), // 設定數據為每個選項的數量
+                                        emphasis: {
+                                            itemStyle: {
+                                                shadowBlur: 10,
+                                                shadowOffsetX: 0,
+                                                shadowColor: 'rgba(0, 0, 0, 0.5)'
+                                            }
                                         }
                                     }
-                                }
-                            ]
-                        };
-                        myChart.setOption(option); // 設定圖表選項
-                        this.chartIndex++;
-                    }
-                })
+                                ]
+                            };
+                            myChart.setOption(option); // 設定圖表選項
+                            this.chartIndex++;
+                        }
+                    })
 
             } catch (error) {
                 // 請求失敗後的操作
                 console.error('There was an error!', error);
             }
+        },
+        back(){
+            if(this.location == "Back"){
+                this.$router.push("Back")
+            }
+            if(this.location == "Front"){
+                this.$router.push("Front")
+            }
         }
     },
     mounted() {
-        this.setPages("Back");
+        // this.setPages("Back");
         this.autoResize();
+        
         this.statistics();
         // Step 1: 初始化一個物件來收集每個 quId 的答案
         const ansMap = {};
@@ -155,7 +172,7 @@ export default {
 
         // Step 3: 將每個 quId 的答案陣列整合成一個大的陣列
         this.ansList = Object.values(ansMap);
-        
+
     }
 }
 
@@ -199,7 +216,7 @@ export default {
             </div> -->
         </div>
         <div class="botArea">
-            <RouterLink to="/Feedback" class="back">
+            <RouterLink to="/" class="back" @click="back">
                 返回
             </RouterLink>
         </div>
