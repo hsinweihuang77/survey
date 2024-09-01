@@ -20,24 +20,9 @@ const router = createRouter({
       component: () => import('../views/FillinSurvey.vue')
     },
     {
-      path: '/SurveyCheckFront/',
-      name: 'SurveyCheckFront',
-      component: () => import('../views/SurveyCheckFront.vue')
-    },
-    {
-      path: '/SurveyChartFront/',
-      name: 'SurveyChartFront',
-      component: () => import('../views/SurveyChartFront.vue')
-    },
-    {
       path: '/Back',
       name: 'Back',
       component: () => import('../views/Back.vue')
-    },
-    {
-      path: '/SurveyDetailBack/',
-      name: 'SurveyDetailBack',
-      component: () => import('../views/SurveyDetailBack.vue')
     },
     {
       path: '/CreateSurvey/',
@@ -63,11 +48,6 @@ const router = createRouter({
       path: '/Statistics',
       name: 'Statistics',
       component: () => import('../views/Statistics.vue')
-    },
-    {
-      path: '/SurveyChartFront',
-      name: 'SurveyChartFront',
-      component: () => import('../views/SurveyChartFront.vue')
     },
   ]
 })
