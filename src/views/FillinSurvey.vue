@@ -15,6 +15,12 @@ export default {
                 phone: "",
                 email: "",
                 age: undefined
+            },
+            stateMap: {
+                "Single": "單選題",
+                "Multi": "複選題",
+                "Text": "詳答題",
+                "ShortText": "簡答題"
             }
         }
     },
@@ -30,6 +36,26 @@ export default {
             textarea.style.height = `${textarea.scrollHeight}px`;
         },
         preview() {
+            if (!this.formTemp.name.trim() || !this.formTemp.email.trim()) {
+                alert('請輸入姓名及Email');
+                return;
+            }
+
+            const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailPattern.test(this.formTemp.email)) {
+                alert('請輸入正確的Email');
+                return;
+            }
+
+            for (let i = 0; i < this.survey.quesList.length; i++) {
+                if (this.survey.quesList[i].necessary) {
+                    if (!this.formData.feedbackList[i].ans.trim() && this.formData.feedbackList[i].ansTemp.length == 0) {
+                        alert('有必填問題未填寫');
+                        return;
+                    }
+                }
+            }
+
             this.isPreview = true;
             console.log(this.formData.feedbackList);
 
@@ -112,11 +138,12 @@ export default {
 <template>
     <div class="mainArea">
         <div class="survey">
-            <div class="title">
+            <div class="title" :style="{ color: survey.styles[0].color }">
                 {{ survey.name }}
             </div>
             <div class="description">
-                <textarea name="" id="description" @input="autoResize" disabled>{{ survey.description }}</textarea>
+                <textarea name="" id="description" @input="autoResize" disabled
+                    :style="{ color: survey.styles[1].color }">{{ survey.description }}</textarea>
             </div>
             <div class="date">
                 <span class="dateItem">開始時間</span>
@@ -159,8 +186,14 @@ export default {
                 </div>
             </div>
             <div class="questions" v-for="(question, index) in survey.quesList">
-                <span v-if="question.necessary == true" style="color: red;">*</span>
-                <span class="qTitle">{{ question.qu }}</span>
+                <div class="quesTitle">
+                    <div>
+                        <span v-if="question.necessary == true" style="color: red;">*</span>
+                        <span class="qTitle" :style="{ color: survey.styles[index + 2][0].color }">{{ question.qu
+                            }}</span>
+                    </div>
+                    <span>{{ stateMap[question.type] }}</span>
+                </div>
                 <div class="question" v-if="question.type == 'ShortText'">
                     <input type="text" class="shortQ" :disabled="isPreview" v-model="formData.feedbackList[index].ans"
                         autocomplete="off">
@@ -174,7 +207,8 @@ export default {
                         <input type="radio" :name="question.id" :id="'radio' + question.qu + opIndex"
                             :value="option.value" :disabled="isPreview" v-model="formData.feedbackList[index].ans">
                         <label :for="'radio' + question.qu + opIndex"
-                            :class="{ 'selected': formData.feedbackList[index].ans == option.value }">{{ option.value
+                            :class="{ 'selected': formData.feedbackList[index].ans == option.value }"
+                            :style="{ color: survey.styles[index + 2][opIndex + 1].color }">{{ option.value
                             }}</label>
                     </div>
                 </div>
@@ -183,8 +217,9 @@ export default {
                         <input type="checkbox" :name="question.id" :id="'checkbox' + question.qu + opIndex"
                             :value="option.value" :disabled="isPreview" v-model="formData.feedbackList[index].ansTemp">
                         <label :for="'checkbox' + question.qu + opIndex"
-                            :class="{ 'selected': formData.feedbackList[index].ansTemp.includes(option.value) }">{{
-                            option.value }}</label>
+                            :class="{ 'selected': formData.feedbackList[index].ansTemp.includes(option.value) }"
+                            :style="{ color: survey.styles[index + 2][opIndex + 1].color }">{{
+                                option.value }}</label>
                     </div>
                 </div>
 
@@ -286,7 +321,7 @@ export default {
                         color: v-bind(textcolor);
                     }
 
-                    
+
                 }
 
             }
@@ -297,8 +332,14 @@ export default {
         .questions {
             margin-top: 30px;
 
-            .qTitle {
-                font-size: 1.2em;
+            .quesTitle {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+
+                .qTitle {
+                    font-size: 1.2em;
+                }
             }
 
             .question {
@@ -313,26 +354,28 @@ export default {
                     caret-color: v-bind(textcolor);
                     color: v-bind(textcolor);
                 }
+
                 .textQ {
-                        width: 100%;
-                        font-size: 1em;
-                        background-color: transparent;
-                        outline: none;
-                        border: none;
-                        border-bottom: 2px solid v-bind(textcolor);
-                        line-height: 1.8;
-                        caret-color: v-bind(textcolor);
-                        color: v-bind(textcolor);
-                        resize: none;
-                        overflow: hidden;
-                        
-                    }
+                    width: 100%;
+                    font-size: 1em;
+                    background-color: transparent;
+                    outline: none;
+                    border: none;
+                    border-bottom: 2px solid v-bind(textcolor);
+                    line-height: 1.8;
+                    caret-color: v-bind(textcolor);
+                    color: v-bind(textcolor);
+                    resize: none;
+                    overflow: hidden;
+
+                }
 
                 .option {
                     margin-top: 5px;
 
                     .selected {
-                        color: aqua;
+                        font-weight: bold;
+                        text-decoration: underline;
                     }
                 }
             }

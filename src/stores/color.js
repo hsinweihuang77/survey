@@ -9,14 +9,14 @@ export default defineStore("color", {
             maincolor:"#121212",
             blockcolor:"#272727",
             subcolor:"#494949",
-            textcolor:"#eee",
+            textcolor:"#eeeeee",
             linkcolor:"#3eaf7c",
 
             darkmodeColor:{
                 maincolor:"#121212",
                 blockcolor:"#272727",
                 subcolor:"#494949",
-                textcolor:"#eee",
+                textcolor:"#eeeeee",
                 linkcolor:"#3eaf7c"
             },
 

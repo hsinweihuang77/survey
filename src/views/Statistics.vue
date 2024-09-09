@@ -110,44 +110,45 @@ export default {
                                     rotate: 45,  // 將標籤旋轉 45 度
                                     formatter: function (value) {
                                         return value.length > 10 ? value.slice(0, 10) + '...' : value;
-                                    }}
-                                },
-                                yAxis: {
-                                    type: 'value', // Y 軸為數值類型
-                                    axisLabel: {
-                                        color: this.textcolor
                                     }
-                                },
-                                series: [
-                                    {
-                                        name: quItem.qu,
-                                        type: 'bar', // 設置為長條圖
-                                        data: this.charts[this.chartIndex].map(item => item.value), // 設定數據為每個選項的數量
-                                        emphasis: {
-                                            itemStyle: {
-                                                shadowBlur: 10,
-                                                shadowOffsetX: 0,
-                                                shadowColor: 'rgba(0, 0, 0, 0.5)'
-                                            }
+                                }
+                            },
+                            yAxis: {
+                                type: 'value', // Y 軸為數值類型
+                                axisLabel: {
+                                    color: this.textcolor
+                                }
+                            },
+                            series: [
+                                {
+                                    name: quItem.qu,
+                                    type: 'bar', // 設置為長條圖
+                                    data: this.charts[this.chartIndex].map(item => item.value), // 設定數據為每個選項的數量
+                                    emphasis: {
+                                        itemStyle: {
+                                            shadowBlur: 10,
+                                            shadowOffsetX: 0,
+                                            shadowColor: 'rgba(0, 0, 0, 0.5)'
                                         }
                                     }
-                                ]
-                            };
-                            myChart.setOption(option); // 設定圖表選項
-                            this.chartIndex++;
-                        }
-                    })
+                                }
+                            ]
+                        };
+                        myChart.setOption(option); // 設定圖表選項
+                        this.chartIndex++;
+                    }
+                })
 
             } catch (error) {
                 // 請求失敗後的操作
                 console.error('There was an error!', error);
             }
         },
-        back(){
-            if(this.location == "Back"){
+        back() {
+            if (this.location == "Back") {
                 this.$router.push("Back")
             }
-            if(this.location == "Front"){
+            if (this.location == "Front") {
                 this.$router.push("Front")
             }
         }
@@ -155,7 +156,7 @@ export default {
     mounted() {
         // this.setPages("Back");
         this.autoResize();
-        
+
         this.statistics();
         // Step 1: 初始化一個物件來收集每個 quId 的答案
         const ansMap = {};
@@ -181,11 +182,12 @@ export default {
 <template>
     <div class="mainArea">
         <div class="survey">
-            <div class="title">
+            <div class="title" :style="{ color: survey.styles[0].color }">
                 {{ survey.name }}
             </div>
             <div class="description">
-                <textarea name="" id="description" @input="autoResize" disabled>{{ survey.description }}</textarea>
+                <textarea name="" id="description" @input="autoResize" disabled
+                    :style="{ color: survey.styles[1].color }">{{ survey.description }}</textarea>
             </div>
             <div class="date">
                 <span class="dateItem">開始時間</span>
@@ -195,7 +197,7 @@ export default {
             </div>
             <div class="questions" v-for="(question, index) in survey.quesList">
                 <span v-if="question.necessary == true" style="color: red;">*</span>
-                <span class="qTitle">{{ question.qu }}</span>
+                <span class="qTitle" :style="{ color: survey.styles[index + 2][0].color }">{{ question.qu }}</span>
                 <div class="question" v-if="question.type == 'ShortText'">
                     <div v-for="ans in ansList[index]">{{ ans }}</div>
                 </div>
@@ -203,10 +205,10 @@ export default {
                     <div v-for="ans in ansList[index]">{{ ans }}</div>
                 </div>
                 <div class="question" v-if="question.type == 'Single'">
-                    <div :key="index" :ref="`chart${index}`" style="width: 400px; height: 400px;"></div>
+                    <div :key="index" :ref="`chart${index}`" style="width: 600px; height: 400px;"></div>
                 </div>
                 <div class="question" v-if="question.type == 'Multi'">
-                    <div :key="index" :ref="`chart${index}`" style="width: 400px; height: 400px;"></div>
+                    <div :key="index" :ref="`chart${index}`" style="width: 600px; height: 400px;"></div>
                 </div>
 
             </div>

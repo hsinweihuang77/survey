@@ -293,6 +293,7 @@ export default {
             this.survey.endDate = "";
             this.survey.published = false;
             this.survey.quesList = [];
+            this.survey.styles = [{color:'#eeeeee'},{color:'#eeeeee'}];
             this.$router.push("/CreateSurvey");
         },
         async deleteSurvey() { //刪除
@@ -329,6 +330,7 @@ export default {
                     this.survey.startDate = item.startDate;
                     this.survey.endDate = item.endDate;
                     this.survey.published = item.published;
+                    this.survey.styles = item.style;
                     this.survey.quesList = item.quesList.map(question => {
                         const newQuestion = { ...question };
                         newQuestion.option = newQuestion.options.split(";").map(value => ({ value }));
@@ -352,6 +354,7 @@ export default {
                 console.log('Survey created:', response.data);
                 this.surveyList = JSON.parse(JSON.stringify(response.data.quizResList.reverse())); //深拷貝
                 this.surveyList.forEach(item => {
+                    item.style = JSON.parse(item.style);
                     const startTime = item.startDate + "T00:00:00"; //設置為午夜
                     const endTime = item.endDate + "T23:59:59";
                     if (!item.published) {
@@ -383,6 +386,7 @@ export default {
                     this.survey.startDate = item.startDate;
                     this.survey.endDate = item.endDate;
                     this.survey.published = item.published;
+                    this.survey.styles = item.style;
                     this.survey.quesList = item.quesList.map(question => {
                         const newQuestion = { ...question };
                         newQuestion.option = newQuestion.options.split(";").map(value => ({ value }));
@@ -400,21 +404,26 @@ export default {
         qShowed() { //更改顯示數量
             this.currentPage = 1;
         },
+        currentPage(){
+            if(this.currentPage == 0){
+                this.currentPage = 1;
+            }
+        },
         totalPage() {
             if (this.currentPage > this.totalPage) {
                 this.changePage(this.totalPage);
             }
-            if (this.totalPage == 0) {
-                this.currentPage = 0;
-            }
+            // if (this.totalPage == 0) {
+            //     this.currentPage = 0;
+            // }
         },
         surveyListArr() { //顯示有改變就重製全選按鈕
             this.checkAll = false;
             this.toggleSelectAll();
         },
         searchItem: {
-            handler(newVal, oldVal) {
-                this.changePage(this.currentPage == 0 ? 1 : this.currentPage); //如果是0就設成1，如果不是就設成當前頁數
+            handler() {
+                // this.changePage(this.currentPage == 0 ? 1 : this.currentPage); //如果是0就設成1，如果不是就設成當前頁數
                 this.search();
             },
             deep: true, // 深度監聽，監聽 search 對象中的所有屬性

@@ -9,6 +9,12 @@ import axios from 'axios'
 export default {
     data() {
         return {
+            stateMap: {
+                "Single": "單選題",
+                "Multi": "複選題",
+                "Text": "詳答題",
+                "ShortText": "簡答題"
+            }
         }
     },
     computed: {
@@ -27,6 +33,7 @@ export default {
                 question.options = question.option.map(option => option.value).join(";");
                 question.id = index + 1;
             });
+            this.survey.style = JSON.stringify(this.survey.styles);
             try {
                 // 發送 POST 請求
                 if (this.survey.id == 0) {
@@ -44,7 +51,7 @@ export default {
                 console.error('There was an error!', error);
             }
         },
-        createSurveyAndPublish(){
+        createSurveyAndPublish() {
             this.survey.published = true;
             this.createSurvey();
         }
@@ -60,11 +67,12 @@ export default {
 <template>
     <div class="mainArea">
         <div class="survey">
-            <div class="title">
+            <div class="title" :style="{ color: survey.styles[0].color }">
                 {{ survey.name }}
             </div>
             <div class="description">
-                <textarea name="" id="description" @input="autoResize" disabled>{{ survey.description }}</textarea>
+                <textarea name="" id="description" @input="autoResize" disabled
+                    :style="{ color: survey.styles[1].color }">{{ survey.description }}</textarea>
 
             </div>
             <div class="date">
@@ -103,9 +111,15 @@ export default {
                     </div>
                 </div>
             </div>
-            <div class="questions" v-for="question in survey.quesList">
-                <span v-if="question.necessary == true" style="color: red;">*</span>
-                <span class="qTitle">{{ question.qu }}</span>
+            <div class="questions" v-for="(question, index) in survey.quesList">
+                <div class="quesTitle">
+                    <div>
+                        <span v-if="question.necessary == true" style="color: red;">*</span>
+                        <span class="qTitle" :style="{ color: survey.styles[index + 2][0].color }">{{ question.qu
+                            }}</span>
+                    </div>
+                    <span>{{ stateMap[question.type] }}</span>
+                </div>
                 <div class="question" v-if="question.type == 'ShortText'">
                     <input type="text" class="shortQ" disabled>
                 </div>
@@ -113,15 +127,17 @@ export default {
                     <input type="text" class="shortQ" disabled>
                 </div>
                 <div class="question" v-if="question.type == 'Single'">
-                    <div class="option" v-for="option in question.option">
+                    <div class="option" v-for="(option, optionIndex) in question.option">
                         <input type="radio" name="" id="" disabled>
-                        <label for="">{{ option.value }}</label>
+                        <label for="" :style="{ color: survey.styles[index + 2][optionIndex + 1].color }">{{
+                            option.value }}</label>
                     </div>
                 </div>
                 <div class="question" v-if="question.type == 'Multi'">
-                    <div class="option" v-for="option in question.option">
+                    <div class="option" v-for="(option, optionIndex) in question.option">
                         <input type="checkbox" name="" id="" disabled>
-                        <label for="">{{ option.value }}</label>
+                        <label for="" :style="{ color: survey.styles[index + 2][optionIndex + 1].color }">{{
+                            option.value }}</label>
                     </div>
                 </div>
 
@@ -131,7 +147,7 @@ export default {
             <RouterLink to="/CreateSurvey" class="back">
                 修改
             </RouterLink>
-            <div class="save" @click="createSurvey" :class="{'disable': this.survey.published == true}">僅儲存</div>
+            <div class="save" @click="createSurvey" :class="{ 'disable': this.survey.published == true }">僅儲存</div>
             <div class="saveAndRelease" @click="createSurveyAndPublish">儲存並發布</div>
         </div>
     </div>
@@ -231,8 +247,14 @@ export default {
         .questions {
             margin-top: 30px;
 
-            .qTitle {
-                font-size: 1.2em;
+            .quesTitle {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+
+                .qTitle {
+                    font-size: 1.2em;
+                }
             }
 
             .question {
@@ -286,7 +308,7 @@ export default {
         transition: 0.3s;
     }
 
-    .disable{
+    .disable {
         pointer-events: none;
         opacity: 0.5;
     }

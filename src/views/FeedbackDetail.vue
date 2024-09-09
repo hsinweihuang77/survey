@@ -31,12 +31,29 @@ export default {
                 item.ansTemp = item.ans.split(";");
             });
         },
-        changeFeedback(number){
+        changeFeedback(number) {
             this.setFeedbackDetailId(this.feedbackDetailId + number);
             this.findFeedback();
+            setTimeout(() => {
+                
+                this.autoResize();
+            }, 10);
         }
     },
-    created(){
+    // watch: {
+    //     feedbackDetail: {
+    //         handler(newVal) {
+    //             // 針對每個 feedbackDetail 的變化來觸發 autoResize
+    //             newVal.forEach((item, index) => {
+    //                 if (item.ans !== undefined) {
+    //                     this.autoResize();
+    //                 }
+    //             });
+    //         },
+    //         deep: true, // 深度監聽，對象內部的變化也會觸發
+    //     },
+    // },
+    created() {
         this.findFeedback();
     },
     mounted() {
@@ -50,11 +67,12 @@ export default {
 <template>
     <div class="mainArea">
         <div class="survey">
-            <div class="title">
+            <div class="title" :style="{ color: survey.styles[0].color }">
                 {{ survey.name }}
             </div>
             <div class="description">
-                <textarea name="" id="description" @input="autoResize" disabled>{{ survey.description }}</textarea>
+                <textarea name="" id="description" @input="autoResize" disabled
+                    :style="{ color: survey.styles[1].color }">{{ survey.description }}</textarea>
             </div>
             <div class="date">
                 <span class="dateItem">開始時間</span>
@@ -69,13 +87,15 @@ export default {
                             <span style="color: red;">*</span>
                             <span>姓名</span>
                         </div>
-                        <input type="text" class="shortQ" disabled v-if="feedbackDetail.length > 0" v-model="feedbackDetail[0].name">
+                        <input type="text" class="shortQ" disabled v-if="feedbackDetail.length > 0"
+                            v-model="feedbackDetail[0].name">
                     </div>
                     <div class="infosItem">
                         <div>
                             <span>手機</span>
                         </div>
-                        <input type="text" class="shortQ" disabled v-if="feedbackDetail.length > 0" v-model="feedbackDetail[0].phone">
+                        <input type="text" class="shortQ" disabled v-if="feedbackDetail.length > 0"
+                            v-model="feedbackDetail[0].phone">
                     </div>
                 </div>
                 <div class="infosBot">
@@ -84,35 +104,45 @@ export default {
                             <span style="color: red;">*</span>
                             <span>E-mail</span>
                         </div>
-                        <input type="text" class="shortQ" disabled v-if="feedbackDetail.length > 0" v-model="feedbackDetail[0].email">
+                        <input type="text" class="shortQ" disabled v-if="feedbackDetail.length > 0"
+                            v-model="feedbackDetail[0].email">
                     </div>
                     <div class="infosItem">
                         <span>年齡</span>
-                        <input type="text" class="shortQ" disabled v-if="feedbackDetail.length > 0" v-model="feedbackDetail[0].age">
+                        <input type="text" class="shortQ" disabled v-if="feedbackDetail.length > 0"
+                            v-model="feedbackDetail[0].age">
                     </div>
                 </div>
             </div>
             <div class="questions" v-for="(question, index) in survey.quesList">
                 <span v-if="question.necessary == true" style="color: red;">*</span>
-                <span class="qTitle">{{ question.qu }}</span>
+                <span class="qTitle" :style="{ color: survey.styles[index + 2][0].color }">{{ question.qu }}</span>
                 <div class="question" v-if="question.type == 'ShortText'">
-                    <input type="text" class="shortQ" disabled v-if="feedbackDetail.length > 0" v-model="feedbackDetail[index].ans">
+                    <input type="text" class="shortQ" disabled v-if="feedbackDetail.length > 0"
+                        v-model="feedbackDetail[index].ans">
                 </div>
                 <div class="question" v-if="question.type == 'Text'">
-                    <textarea @input="autoResize" type="text" class="textQ" disabled v-if="feedbackDetail.length > 0" 
+                    <textarea @input="autoResize" type="text" class="textQ" disabled v-if="feedbackDetail.length > 0"
                         v-model="feedbackDetail[index].ans" autocomplete="off"></textarea>
                 </div>
                 <div class="question" v-if="question.type == 'Single'">
                     <div class="option" v-for="(option, opIndex) in question.option" :key="opIndex">
-                        <input type="radio" :name="question.id" :id="'radio' + question.qu + opIndex" :value="option.value" disabled v-if="feedbackDetail.length > 0" v-model="feedbackDetail[index].ans">
-                        <label :for="'radio' + question.qu + opIndex" v-if="feedbackDetail.length > 0" :class="{'selected': feedbackDetail[index].ans == option.value}">{{ option.value }}</label>
+                        <input type="radio" :name="question.id" :id="'radio' + question.qu + opIndex"
+                            :value="option.value" disabled v-if="feedbackDetail.length > 0"
+                            v-model="feedbackDetail[index].ans">
+                        <label :for="'radio' + question.qu + opIndex" v-if="feedbackDetail.length > 0"
+                            :class="{ 'selected': feedbackDetail[index].ans == option.value }"
+                            :style="{ color: survey.styles[index + 2][opIndex + 1].color }">{{ option.value }}</label>
                     </div>
                 </div>
                 <div class="question" v-if="question.type == 'Multi'">
                     <div class="option" v-for="(option, opIndex) in question.option" :key="opIndex">
-                        <input type="checkbox" :name="question.id" :id="'checkbox' + question.qu + opIndex" :value="option.value"
-                            disabled v-if="feedbackDetail.length > 0" v-model="feedbackDetail[index].ansTemp">
-                        <label :for="'checkbox' + question.qu + opIndex" v-if="feedbackDetail.length > 0" :class="{'selected': feedbackDetail[index].ansTemp.includes(option.value) }">{{ option.value }}</label>
+                        <input type="checkbox" :name="question.id" :id="'checkbox' + question.qu + opIndex"
+                            :value="option.value" disabled v-if="feedbackDetail.length > 0"
+                            v-model="feedbackDetail[index].ansTemp">
+                        <label :for="'checkbox' + question.qu + opIndex" v-if="feedbackDetail.length > 0"
+                            :class="{ 'selected': feedbackDetail[index].ansTemp.includes(option.value) }"
+                            :style="{ color: survey.styles[index + 2][opIndex + 1].color }">{{ option.value }}</label>
                     </div>
                 </div>
 
@@ -122,9 +152,10 @@ export default {
             <RouterLink to="/Feedback" class="back">
                 返回
             </RouterLink>
-            <div class="botBTN1" :class="{'disabled': feedbackDetailId == 1}" @click="changeFeedback(-1)">前一張</div>
+            <div class="botBTN1" :class="{ 'disabled': feedbackDetailId == 1 }" @click="changeFeedback(-1)">前一張</div>
             <div class="blank"></div>
-            <div class="botBTN2" :class="{'disabled': feedbackDetailId == feedbackDetailIdMax}" @click="changeFeedback(1)">下一張</div>
+            <div class="botBTN2" :class="{ 'disabled': feedbackDetailId == feedbackDetailIdMax }"
+                @click="changeFeedback(1)">下一張</div>
             <RouterLink to="/Statistics" class="stat">
                 統計
             </RouterLink>
@@ -244,25 +275,26 @@ export default {
                 }
 
                 .textQ {
-                        width: 100%;
-                        font-size: 1em;
-                        background-color: transparent;
-                        outline: none;
-                        border: none;
-                        border-bottom: 2px solid v-bind(textcolor);
-                        line-height: 1.8;
-                        caret-color: v-bind(textcolor);
-                        color: v-bind(textcolor);
-                        resize: none;
-                        overflow: hidden;
-                        
-                    }
+                    width: 100%;
+                    font-size: 1em;
+                    background-color: transparent;
+                    outline: none;
+                    border: none;
+                    border-bottom: 2px solid v-bind(textcolor);
+                    line-height: 1.8;
+                    caret-color: v-bind(textcolor);
+                    color: v-bind(textcolor);
+                    resize: none;
+                    overflow: hidden;
+
+                }
 
                 .option {
                     margin-top: 5px;
 
-                    .selected{
-                        color: aqua;
+                    .selected {
+                        font-weight: bold;
+                        text-decoration: underline;
                     }
                 }
             }
@@ -288,7 +320,7 @@ export default {
         cursor: pointer;
     }
 
-    .botBTN1{
+    .botBTN1 {
         width: 10%;
         background-color: v-bind(blockcolor);
         color: v-bind(textcolor);
@@ -300,11 +332,11 @@ export default {
         cursor: pointer;
     }
 
-    .blank{
+    .blank {
         width: 50%
     }
 
-    .botBTN2{
+    .botBTN2 {
         width: 10%;
         background-color: v-bind(blockcolor);
         color: v-bind(textcolor);
@@ -316,7 +348,7 @@ export default {
         cursor: pointer;
     }
 
-    .stat{
+    .stat {
         width: 10%;
         background-color: v-bind(blockcolor);
         color: v-bind(textcolor);
@@ -329,7 +361,7 @@ export default {
         cursor: pointer;
     }
 
-    .disabled{
+    .disabled {
         pointer-events: none;
         opacity: 0.5;
     }

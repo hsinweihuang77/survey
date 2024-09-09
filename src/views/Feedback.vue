@@ -94,11 +94,11 @@ export default {
 <template>
     <div class="mainArea">
         <div class="survey">
-            <div class="title">
+            <div class="title" :style="{ color: survey.styles[0].color }">
                 {{ survey.name }}
             </div>
             <div class="description">
-                <textarea name="" id="description" @input="autoResize" disabled>{{ survey.description }}</textarea>
+                <textarea name="" id="description" @input="autoResize" disabled :style="{ color: survey.styles[1].color }">{{ survey.description }}</textarea>
             </div>
             <div class="date">
                 <span class="dateItem">開始時間</span>

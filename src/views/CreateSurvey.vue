@@ -44,22 +44,55 @@ export default {
                 option: [{ value: '' }],
                 options: ""
             };
+            this.survey.styles.push([{ color: '#eeeeee' }, { color: '#eeeeee' }])
             this.survey.quesList.push(newQuestion);
         },
-        addOption(option) {
-            option.push({ value: '' });
+        addOption(index) {
+            this.survey.quesList[index].option.push({ value: '' });
+            this.survey.styles[index + 2].push({ color: '#eeeeee' })
         },
         deleteQuestion(index) {
             this.survey.quesList.splice(index, 1);
+            this.survey.styles.splice(index + 2, 1);
         },
         deleteOption(index, optionIndex) {
             this.survey.quesList[index].option.splice(optionIndex, 1);
+            this.survey.styles[index + 2].splice(optionIndex + 1, 1);
         },
         backToBack() {
             this.$router.push('/Back');
+        },
+        preview(){
+            if(!this.survey.name.trim()){
+                alert('請輸入標題');
+                return;
+            }
+
+            if(!this.survey.startDate.trim() || !this.survey.endDate.trim()){
+                alert('請輸入起始日期');
+                return;
+            }
+
+            for(const item of this.survey.quesList){
+                if(!item.qu.trim()){
+                    alert('請輸入問題題目');
+                    return;
+                }
+                if(item.type == "Single" || item.type == "Multi"){
+                    for(const option of item.option){
+                        if(!option.value.trim()){
+                            alert('請輸入選項內容')
+                            return;
+                        }
+                    }
+                }
+            }
+
+            this.$router.push('/CheckSurvey');
         }
     },
     mounted() {
+
         this.setPages("Back");
         this.autoResize();
 
@@ -78,13 +111,16 @@ export default {
 
         <!-- 問卷標題與敘述 -->
         <div class="title">
-            <input type="text" id="title" v-model="survey.name" placeholder="請輸入標題" autocomplete="off">
+            <input type="text" id="title" v-model="survey.name" placeholder="請輸入標題" autocomplete="off"
+                v-if="survey.styles.length > 0" :style="{ color: survey.styles[0].color }">
+            <input type="color" class="titleColor" v-if="survey.styles.length > 0" v-model="survey.styles[0].color">
             <textarea id="description" @input="autoResize" v-model="survey.description" placeholder="請敘述問卷內容"
-                autocomplete="off"></textarea>
+                autocomplete="off" v-if="survey.styles.length > 0" :style="{ color: survey.styles[1].color }"></textarea>
+            <input type="color" class="desColor" v-if="survey.styles.length > 0" v-model="survey.styles[1].color">
             <div class="date">
                 <span class="dateItem">開始時間</span>
-                <input type="date" class="dateItem inputDate" v-model="survey.startDate"
-                    :min="today" :max="survey.endDate">
+                <input type="date" class="dateItem inputDate" v-model="survey.startDate" :min="today"
+                    :max="survey.endDate">
                 <span class="dateItem">結束時間</span>
                 <input type="date" class="dateItem inputDate" v-model="survey.endDate" :min="survey.startDate">
             </div>
@@ -126,7 +162,9 @@ export default {
             <div class="questionTOP">
 
                 <!-- 題目 -->
-                <input type="text" class="qTitle" placeholder="請輸入問題" v-model="question.qu" autocomplete="off">
+                <input type="text" class="qTitle" placeholder="請輸入問題" v-model="question.qu" autocomplete="off"
+                    :style="{ color: survey.styles[index + 2][0].color }">
+                <input type="color" v-model="survey.styles[index + 2][0].color">
 
                 <!-- 選擇題型 -->
                 <select id="" class="typeSelector" v-model.number="question.type">
@@ -149,12 +187,14 @@ export default {
                 <div class="option" v-if="question.type == 'Single'">
                     <div class="optionItem" v-for="(option, optionIndex) in question.option">
                         <i class="fa-regular fa-circle-dot"></i>
-                        <input type="text" name="" id="" v-model="option.value" autocomplete="off">
+                        <input type="text" name="" id="" v-model="option.value" autocomplete="off"
+                            :style="{ color: survey.styles[index + 2][optionIndex + 1].color }">
+                        <input type="color" v-model="survey.styles[index + 2][optionIndex + 1].color">
                         <i class="fa-solid fa-xmark" @click="deleteOption(index, optionIndex)"></i>
                     </div>
                     <div class="optionItem">
                         <i class="fa-regular fa-circle-dot"></i>
-                        <span @click="addOption(question.option)">新增選項</span>
+                        <span @click="addOption(index)">新增選項</span>
                     </div>
                 </div>
 
@@ -162,12 +202,14 @@ export default {
                 <div class="option" v-if="question.type == 'Multi'">
                     <div class="optionItem" v-for="(option, optionIndex) in question.option">
                         <i class="fa-regular fa-square-check"></i>
-                        <input type="text" name="" id="" v-model="option.value" autocomplete="off">
+                        <input type="text" name="" id="" v-model="option.value" autocomplete="off"
+                            :style="{ color: survey.styles[index + 2][optionIndex + 1].color }">
+                        <input type="color" v-model="survey.styles[index + 2][optionIndex + 1].color">
                         <i class="fa-solid fa-xmark" @click="deleteOption(index, optionIndex)"></i>
                     </div>
                     <div class="optionItem">
                         <i class="fa-regular fa-square-check"></i>
-                        <span @click="addOption(question.option)">新增選項</span>
+                        <span @click="addOption(index)">新增選項</span>
                     </div>
                 </div>
 
@@ -185,15 +227,24 @@ export default {
         <div class="botArea">
             <div class="back" @click="backToBack">返回</div>
             <div class="addQuestion" @click="addQuestion">新增問題</div>
-            <RouterLink to="/CheckSurvey" class="preview" :class="{ 'previewDisabled': survey.quesList.length == 0 }">
+            <div @click="preview" class="preview" :class="{ 'previewDisabled': survey.quesList.length == 0 }">
                 預覽
-            </RouterLink>
+            </div>
         </div>
     </div>
 
 </template>
 
 <style scoped lang="scss">
+input[type="color" i] {
+    border-radius: 50%;
+    width: 20px;
+    height: 20px;
+    border-width: 1px;
+    border-style: solid;
+    border-color: v-bind(textcolor);
+}
+
 .mainArea {
     width: 800px;
     display: flex;
@@ -211,6 +262,19 @@ export default {
     flex-direction: column;
     justify-content: center;
     transition: 0.3s;
+    position: relative;
+
+    .titleColor{
+        position: absolute;
+        top: 40px;
+        right: 45px;
+    }
+
+    .desColor{
+        position: absolute;
+        top: 106px;
+        right: 45px;
+    }
 
     #title {
         font-size: 2em;
@@ -359,7 +423,7 @@ export default {
                 display: flex;
                 justify-content: start;
                 align-items: center;
-                position: relative;
+                // position: relative;
 
                 .fa-circle-dot {
                     width: 16px;
@@ -372,12 +436,12 @@ export default {
                 }
 
                 .fa-xmark {
-                    position: absolute;
-                    right: 0;
+                    // position: absolute;
+                    // right: 0;
                     cursor: pointer;
                 }
 
-                input {
+                input[type="text"] {
                     width: 100%;
                     font-size: 1em;
                     background-color: transparent;
@@ -386,7 +450,12 @@ export default {
                     border-bottom: 1px solid v-bind(textcolor);
                     caret-color: v-bind(textcolor);
                     color: v-bind(textcolor);
-                    padding-right: 20px;
+                }
+
+                input[type="color"] {
+                    width: 22.4px;
+                    margin-left: 10px;
+                    margin-right: 10px;
                 }
 
                 span {
@@ -463,11 +532,11 @@ export default {
         width: 10%;
         background-color: v-bind(blockcolor);
         color: v-bind(textcolor);
-        text-decoration: none;
         border-radius: 20px;
         margin: 2% 0%;
         padding: 1%;
         text-align: center;
+        cursor: pointer;
         transition: 0.3s;
     }
 

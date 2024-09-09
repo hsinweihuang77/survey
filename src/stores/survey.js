@@ -15,7 +15,9 @@ export default defineStore("survey", {
                 startDate: "",
                 endDate: "",
                 published: false,
-                quesList: []
+                quesList: [],
+                style: "",
+                styles: [{color:'#eeeeee'},{color:'#eeeeee'}]
             },
             feedbackId: undefined,
             feedbackPinia: {
